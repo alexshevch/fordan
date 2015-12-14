@@ -1,0 +1,22 @@
+{
+  "name": "fordan",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shevaroller/fordan.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shevaroller/fordan/issues"
+  },
+  "homepage": "https://github.com/shevaroller/fordan#readme",
+  "dependencies": {
+    "zmq": "^2.14.0"
+  }
+}

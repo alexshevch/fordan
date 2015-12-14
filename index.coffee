@@ -1,8 +1,12 @@
+# They setup the library weird. This import method works...
+zmq = require './node_modules/zmq/'
+console.log zmq
+
 class Server
 
 	constructor : (@server, @token, @password, @teamName) ->
 
-class Commands 
+class Commands
 
 	fire : () ->
 
