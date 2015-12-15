@@ -1,0 +1,30 @@
+#!/usr/bin/env coffee
+
+spawn = require('child_process').spawn
+server = process.argv[3]
+console.log server
+ssh = spawn "ssh", [
+  "-L"
+  "5557:#{server}:5557"
+  "-L"
+  "5556:#{server}:5556"
+  "-N"
+  "pason"
+]
+ssh.stdout.pipe(process.stdout)
+
+
+nodemon = spawn "nodemon", [
+  "index.coffee"
+  "-t"
+  process.argv[2]
+  "-s"
+  "localhost"
+]
+
+nodemon.stdout.pipe(process.stdout)
+nodemon.stderr.pipe(process.stderr)
+process.on 'SIGINT', ->
+  nodemon.kill 'SIGINT'
+  ssh.kill 'SIGINT'
+  process.exit()
