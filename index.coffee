@@ -13,11 +13,12 @@ Commands = require './commands.coffee'
 
 class ServerBindings
   MatchConnect : () ->
-    JSON.stringify
-      "comm_type" : "MatchConnect"
-      "match_token" : @token
-      "team_name" : @teamName
-      "password" : @password
+    """{
+    "comm_type" : "MatchConnect",
+    "match_token" : "#{@token}",
+    "team_name" : "#{@teamName}",
+    "password" : "#{@password}"
+  }"""
 
   constructor : (@server, @token, @password, @teamName, @port) ->
 
@@ -25,19 +26,21 @@ class CommandChannel extends ServerBindings
   zmq = require 'zmq'
   sock = zmq.socket 'req'
   constructor : (@server, @token, @password, @teamName) ->
-    console.log "tcp://#{@server}:5557", @MatchConnect()
-    sock.bind "tcp://#{@server}:5557", (err) =>
-      sock.send @MatchConnect()
-      sock.on 'message', (data) ->
-        console.log "CommandChannel: #{data}"
+    console.log "tcp://#{@server}:5557"
+    console.log @MatchConnect()
+    sock.connect "tcp://#{@server}:5557"
+    sock.send @MatchConnect()
+    sock.on 'message', (data) ->
+      console.log "CommandChannel: #{data}"
 
 class StateChannel extends ServerBindings
   zmq = require 'zmq'
   sock = zmq.socket 'sub'
   constructor : (@server, @token, @password, @teamName) ->
     sock.connect "tcp://#{@server}:5556"
-    sock.on 'message', (data) ->
-      console.log "StateChannel: #{data}"
+    sock.subscribe(@token);
+    sock.on 'message', (token, state) ->
+      console.log "StateChannel: #{state}}"
 
 comm = new Commands(argv.token)
 CC = new CommandChannel(argv.server, argv.token, argv.password, argv.teamName)
