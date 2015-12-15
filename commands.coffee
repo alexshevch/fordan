@@ -1,31 +1,38 @@
 module.exports = class Commands
   constructor : (@token) ->
 
-  stop : () ->
-    tank_id : "eb49f487-92dc-4f66-ac83-91ae04a4cc16"
-    comm_type : "STOP"
-    # one of MOVE, ROTATE, ROTATE_TURRET, FIRE
-    control : "ROTATE"
-    client_token : @token
-  fire : () ->
-    tank_id : "eb49f487-92dc-4f66-ac83-91ae04a4cc16"
-    comm_type : "FIRE"
-    client_token : @token
-  move : () ->
-    tank_id : "eb49f487-92dc-4f66-ac83-91ae04a4cc16"
-    comm_type : "MOVE"
-    direction : "FWD"
-    distance : 10
-    client_token : @token
-  rotateTurret : () ->
-    tank_id : "eb49f487-92dc-4f66-ac83-91ae04a4cc16"
-    comm_type : "ROTATE_TURRET"
-    direction : "CCW"
-    rads : 1.11
-    client_token : @token
-  rotateTank : () ->
-    tank_id : "eb49f487-92dc-4f66-ac83-91ae04a4cc16"
-    comm_type : "ROTATE"
-    direction : "CW"
-    rads : 3.14
-    client_token : @token
+  stop : (id, type) ->
+    JSON.stringify
+      tank_id : id
+      comm_type : "STOP"
+      # one of MOVE, ROTATE, ROTATE_TURRET, FIRE
+      control : type
+      client_token : @token
+  fire : (id) ->
+    JSON.stringify
+      tank_id : id
+      comm_type : "FIRE"
+      client_token : @token
+  move : (id, direction) ->
+    JSON.stringify
+      tank_id : id
+      comm_type : "MOVE"
+      # FWD or REV
+      direction : direction
+      distance : 10
+      client_token : @token
+  rotateTurret : (id, direction, rads) ->
+    JSON.stringify
+      tank_id : id
+      comm_type : "ROTATE_TURRET"
+      direction : direction
+      rads : rads
+      client_token : @token
+  rotateTank : (id, direction, rads) ->
+    JSON.stringify
+      tank_id : id
+      comm_type : "ROTATE"
+      # CW or CCW
+      direction : direction
+      rads : rads
+      client_token : @token
