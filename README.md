@@ -1,9 +1,15 @@
+    __               _             
+    / _| ___  _ __ __| | __ _ _ __  
+    | |_ / _ \| '__/ _` |/ _` | '_ \
+    |  _| (_) | | | (_| | (_| | | | |
+    |_|  \___/|_|  \__,_|\__,_|_| |_|
+
+
 Development
 
-For control save reload of script nodemon is nice
-`npm install -g nodemon`
 
-Running the script `runAndRemote` will start the program and with port forwards
+Running in the root directory
 
-  usage:
-    ./runAndRemote <token> <serverip> (ip-...-ec2.internal)
+`./rsync`
+
+Should sync from local to remote

@@ -7,26 +7,30 @@ argv = require('optimist')
 .alias 'n', 'teamName'
 .alias 'p', 'password'
 .argv;
+logging = require('./logging.coffee')
 
 Map = require './modules/map.coffee'
 Commands = require './modules/commands.coffee'
 _ = require 'lodash'
 
-log = (data) ->
-  console.log data
-logDebounced = _.throttle log, 1000
-
 class CommandChannel
   zmq = require 'zmq'
   sock = zmq.socket 'req'
+
+  constructor : (options) ->
+    {@server, @token, @password, @teamName} = options
+    # console.log @MatchConnect()
+    sock.connect "tcp://#{@server}:5557"
+    sock.send @MatchConnect()
+    sock.on 'message', @handleMessage.bind @
 
   handleMessage : (data) ->
     JSONdata = JSON.parse data
     if JSONdata.comm_type is "MatchConnectResp"
       @client_token = JSONdata.client_token
-      console.log @
-      console.log "CommandChannel: #{data}"
-    logDebounced data.toString()
+      # console.log @
+      # console.log "CommandChannel: #{data}"
+    logging.screen1 JSON.stringify(JSONdata, null, 2)
 
   MatchConnect : ->
     JSON.stringify
@@ -34,13 +38,6 @@ class CommandChannel
       "match_token" : @token,
       "team_name" : @teamName,
       "password" : @password
-
-  constructor : (options) ->
-    {@server, @token, @password, @teamName} = options
-    console.log @MatchConnect()
-    sock.connect "tcp://#{@server}:5557"
-    sock.send @MatchConnect()
-    sock.on 'message', @handleMessage.bind @
 
   send : (data) ->
     data.client_token = @client_token
@@ -50,29 +47,29 @@ class StateChannel
   zmq = require 'zmq'
   sock = zmq.socket 'sub'
   initialState = true
-  commandChannel = null
+
+  constructor : (options) ->
+    {@server, @token, @password, @teamName} = options
+    @commandChannel = new CommandChannel(options)
+    sock.connect "tcp://#{@server}:5556"
+    sock.subscribe(@token)
+    sock.on 'message', @handleMessage.bind @
 
   handleMessage : (token, state) ->
-    state = JSON.parse state
-    if state.comm_type isnt 'GAMESTATE'
-      console.log state
+    JSONdata = JSON.parse state
+    if JSONdata.comm_type isnt 'GAMESTATE'
+      logging.screen2 JSON.stringify(JSONdata, null, 2)
       return
     if initialState
-      friendly = state.players[1]
+      friendly = JSONdata.players[1]
       @tanks = for tank in friendly.tanks
         command = new Commands(tank.id)
         new Tank(tank, command)
       initialState = false
     else
       for tank in @tanks
-        tank.handleMessage state.map, state.players[0].tanks, commandChannel
+        tank.handleMessage JSONdata.map, JSONdata.players[0].tanks, @commandChannel
 
-  constructor : (options) ->
-    {@server, @token, @password, @teamName} = options
-    commandChannel = new CommandChannel(options)
-    sock.connect "tcp://#{@server}:5556"
-    sock.subscribe(@token)
-    sock.on 'message', @handleMessage.bind @
 
 SC = new StateChannel(argv)
 

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+DEST="$1"
+
+inotifywait --exclude '(\.git|node_modules)' -r -m -e close_write --format '%w%f' . |\
+while read file
+do
+  echo $file
+
+  rsync --exclude={.git,node_modules} -azvq . pason:$USER
+  echo -n 'Completed at '
+  date
+done
