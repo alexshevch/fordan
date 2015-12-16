@@ -1,6 +1,5 @@
 argv = require('optimist')
 .usage '-t token  -s server -n team_name -p team_password'
-.demand ['t', 's']
 .default 'n', 'fordan'
 .default 'p', 'manoui'
 .alias 't', 'token'
@@ -9,60 +8,81 @@ argv = require('optimist')
 .alias 'p', 'password'
 .argv;
 
-Commands = require './commands.coffee'
+Map = require './modules/map.coffee'
+Commands = require './modules/commands.coffee'
+_ = require 'lodash'
 
-class ServerBindings
-  MatchConnect : () ->
+log = (data) ->
+  console.log data
+logDebounced = _.throttle log, 1000
+
+class CommandChannel
+  zmq = require 'zmq'
+  sock = zmq.socket 'req'
+
+  handleMessage : (data) ->
+    JSONdata = JSON.parse data
+    if JSONdata.comm_type is "MatchConnectResp"
+      @client_token = JSONdata.client_token
+      console.log @
+      console.log "CommandChannel: #{data}"
+    logDebounced data.toString()
+
+  MatchConnect : ->
     JSON.stringify
       "comm_type" : "MatchConnect",
       "match_token" : @token,
       "team_name" : @teamName,
       "password" : @password
 
-class CommandChannel extends ServerBindings
-  zmq = require 'zmq'
-  sock = zmq.socket 'req'
-  sock.on 'message', (data) ->
-    console.log "CommandChannel: #{data}"
-  constructor : (@server, @token, @password, @teamName) ->
+  constructor : (options) ->
+    {@server, @token, @password, @teamName} = options
     console.log @MatchConnect()
     sock.connect "tcp://#{@server}:5557"
     sock.send @MatchConnect()
+    sock.on 'message', @handleMessage.bind @
 
-class StateChannel extends ServerBindings
+  send : (data) ->
+    data.client_token = @client_token
+    sock.send JSON.stringify data
+
+class StateChannel
   zmq = require 'zmq'
   sock = zmq.socket 'sub'
-  sock.on 'message', (token, state) ->
+  initialState = true
+  commandChannel = null
+
+  handleMessage : (token, state) ->
     state = JSON.parse state
-    console.log state.comm_type
-    console.log state.players
-    console.log state.map.size
-    # console.log "StateChannel: #{state}}"
-  constructor : (@server, @token, @password, @teamName) ->
+    if state.comm_type isnt 'GAMESTATE'
+      console.log state
+      return
+    if initialState
+      friendly = state.players[1]
+      @tanks = for tank in friendly.tanks
+        command = new Commands(tank.id)
+        new Tank(tank, command)
+      initialState = false
+    else
+      for tank in @tanks
+        tank.handleMessage state.map, state.players[0].tanks, commandChannel
+
+  constructor : (options) ->
+    {@server, @token, @password, @teamName} = options
+    commandChannel = new CommandChannel(options)
     sock.connect "tcp://#{@server}:5556"
     sock.subscribe(@token)
+    sock.on 'message', @handleMessage.bind @
 
-comm = new Commands(argv.token)
-CC = new CommandChannel(argv.server, argv.token, argv.password, argv.teamName)
-SC = new StateChannel(argv.server, argv.token, argv.password, argv.teamName)
-
-class Strategy
-
-  constructor : ->
+SC = new StateChannel(argv)
 
 class Tank
-  constructor : (@id) ->
+  _ = require('lodash')
+  constructor : (tank, @commands) ->
+    _.extend @, tank
 
-  getState : () ->
-
-class Map
-  constructor : () ->
-
-  # low level get state
-  getTerrain : () ->
-
-  # high level state
-  getEnemies : () ->
-
-  # high level get map state
-  getFriendlies : () ->
+  handleMessage : (map, enemies, CommandChannel) ->
+    CommandChannel.send @commands.moveForward 20
+    CommandChannel.send @commands.rotateTurretCCW(0.5)
+    CommandChannel.send @commands.fire()
+    CommandChannel.send @commands.rotateCW .4
