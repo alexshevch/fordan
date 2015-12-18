@@ -8,11 +8,11 @@ argv = require('optimist')
 .alias 'p', 'password'
 .argv;
 logging = require('./logging.coffee')
+Tank = require './modules/tank.coffee'
 
 _ = require 'lodash'
 cson = require 'cson'
 zmq = require 'zmq'
-
 
 class CommandChannel
   sock = zmq.socket 'req'
@@ -90,36 +90,3 @@ class StateChannel
     return
 
 SC = new StateChannel(argv)
-
-class Tank
-  Map = require './modules/map.coffee'
-  math = require 'mathjs'
-  Commands = require './modules/commands.coffee'
-
-  tankTypes =
-    fast :
-      rof: 5 # seconds delay
-      turretRotation: 1.5 # rads
-      tankRotation: 1.5 # rads
-    slow :
-      rof: 3 # seconds delay
-      turretRotation: 1 # rads
-      tankRotation: 1 # rads
-
-  constructor : (tank, @command) ->
-    _.extend @, tank
-    @commands = new Commands(@id)
-
-  update : (data) ->
-    {@position, @tracks, @type, @turret, @projectiles} = data
-
-  target : (enemyId) ->
-    1
-
-  handleMessage : (map, enemies, friendlys, CommandChannel) ->
-    enemy = Map.getNearestEnemy @, enemies
-
-    CommandChannel.send @command.moveForward 20
-    CommandChannel.send @command.rotateTurretCW(0.4)
-    CommandChannel.send @command.fire()
-    CommandChannel.send @command.rotateCW .4
