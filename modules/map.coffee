@@ -1,12 +1,8 @@
 
-class Map
-  constructor : () ->
 
-  # low level get state
-  getTerrain : () ->
+module.exports =
 
-  # high level state
-  getEnemies : () ->
 
-  # high level get map state
-  getFriendlies : () ->
+  getNearestEnemy : (friendlyTank, enemyTanks) ->
+    # Place holder
+    enemyTanks[0]

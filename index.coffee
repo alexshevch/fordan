@@ -9,8 +9,6 @@ argv = require('optimist')
 .argv;
 logging = require('./logging.coffee')
 
-Map = require './modules/map.coffee'
-Commands = require './modules/commands.coffee'
 _ = require 'lodash'
 cson = require 'cson'
 zmq = require 'zmq'
@@ -78,28 +76,50 @@ class StateChannel
       friendly = data.players[1]
       @tanks = {}
       for tank in friendly.tanks
-        commands = new Commands(tank.id)
-        @tanks[tank.id] = new Tank(tank, commands)
+        @tanks[tank.id] = new Tank(tank)
       shouldInitialize = false
       return
 
-    if data.comm_type is 'GAMESTATE'
+    if (data.comm_type is 'GAMESTATE') and (shouldInitialize is false)
       for tank in data.players[1].tanks
         @tanks[tank.id].update tank
-        @tanks[tank.id].handleMessage data.map, data.players[0].tanks, @commandChannel
+        @tanks[tank.id].handleMessage data.map,
+          data.players[0].tanks,
+          data.players[1].tanks,
+          @commandChannel
     return
 
 SC = new StateChannel(argv)
 
 class Tank
+  Map = require './modules/map.coffee'
+  math = require 'mathjs'
+  Commands = require './modules/commands.coffee'
+
+  tankTypes =
+    fast :
+      rof: 5 # seconds delay
+      turretRotation: 1.5 # rads
+      tankRotation: 1.5 # rads
+    slow :
+      rof: 3 # seconds delay
+      turretRotation: 1 # rads
+      tankRotation: 1 # rads
+
   constructor : (tank, @command) ->
     _.extend @, tank
+    @commands = new Commands(@id)
 
   update : (data) ->
-    {@position, @tracks, @turret, @projectiles} = data
+    {@position, @tracks, @type, @turret, @projectiles} = data
 
-  handleMessage : (map, enemies, CommandChannel) ->
+  target : (enemyId) ->
+    1
+
+  handleMessage : (map, enemies, friendlys, CommandChannel) ->
+    enemy = Map.getNearestEnemy @, enemies
+
     CommandChannel.send @command.moveForward 20
-    CommandChannel.send @command.rotateTurretCCW(0.5)
+    CommandChannel.send @command.rotateTurretCW(0.4)
     CommandChannel.send @command.fire()
     CommandChannel.send @command.rotateCW .4
