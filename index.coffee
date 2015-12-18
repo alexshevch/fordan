@@ -12,25 +12,31 @@ logging = require('./logging.coffee')
 Map = require './modules/map.coffee'
 Commands = require './modules/commands.coffee'
 _ = require 'lodash'
+cson = require 'cson'
+zmq = require 'zmq'
+
 
 class CommandChannel
-  zmq = require 'zmq'
   sock = zmq.socket 'req'
 
   constructor : (options) ->
     {@server, @token, @password, @teamName} = options
-    # console.log @MatchConnect()
     sock.connect "tcp://#{@server}:5557"
-    sock.send @MatchConnect()
     sock.on 'message', @handleMessage.bind @
+    # do need this VERY FIRST/INITIAL connect when the match
+    # hasn't started there wont be any sub data
+    do @connect
 
   handleMessage : (data) ->
-    JSONdata = JSON.parse data
-    if JSONdata.comm_type is "MatchConnectResp"
-      @client_token = JSONdata.client_token
-      # console.log @
-      # console.log "CommandChannel: #{data}"
-    logging.screen1 JSON.stringify(JSONdata, null, 2)
+    data = JSON.parse data
+    if data.comm_type is "MatchConnectResp"
+      @client_token = data.client_token
+      logging.screen2 cson.stringify(data, null, 2)
+    else
+      logging.screen1 cson.stringify(data, null, 2)
+
+  connect : ->
+    sock.send @MatchConnect()
 
   MatchConnect : ->
     JSON.stringify
@@ -44,42 +50,56 @@ class CommandChannel
     sock.send JSON.stringify data
 
 class StateChannel
-  zmq = require 'zmq'
   sock = zmq.socket 'sub'
-  initialState = true
+  shouldInitialize = true
 
   constructor : (options) ->
     {@server, @token, @password, @teamName} = options
     @commandChannel = new CommandChannel(options)
     sock.connect "tcp://#{@server}:5556"
-    sock.subscribe(@token)
     sock.on 'message', @handleMessage.bind @
+    sock.subscribe(@token)
 
   handleMessage : (token, state) ->
-    JSONdata = JSON.parse state
-    if JSONdata.comm_type isnt 'GAMESTATE'
-      logging.screen2 JSON.stringify(JSONdata, null, 2)
-      return
-    if initialState
-      friendly = JSONdata.players[1]
-      @tanks = for tank in friendly.tanks
-        command = new Commands(tank.id)
-        new Tank(tank, command)
-      initialState = false
-    else
-      for tank in @tanks
-        tank.handleMessage JSONdata.map, JSONdata.players[0].tanks, @commandChannel
+    data = JSON.parse state
+    if data.comm_type isnt 'GAMESTATE'
+      logging.screen2 cson.stringify(data, null, 2)
 
+    if (data.comm_type is "GAME_END") or (data.comm_type is "GAME_START")
+      shouldInitialize = true
+      return
+
+    if data.comm_type is "MatchEnd"
+      process.exit 0
+
+    if shouldInitialize
+      @commandChannel.connect()
+
+      friendly = data.players[1]
+      @tanks = {}
+      for tank in friendly.tanks
+        commands = new Commands(tank.id)
+        @tanks[tank.id] = new Tank(tank, commands)
+      shouldInitialize = false
+      return
+
+    if data.comm_type is 'GAMESTATE'
+      for tank in data.players[1].tanks
+        @tanks[tank.id].update tank
+        @tanks[tank.id].handleMessage data.map, data.players[0].tanks, @commandChannel
+    return
 
 SC = new StateChannel(argv)
 
 class Tank
-  _ = require('lodash')
-  constructor : (tank, @commands) ->
+  constructor : (tank, @command) ->
     _.extend @, tank
 
+  update : (data) ->
+    {@position, @tracks, @turret, @projectiles} = data
+
   handleMessage : (map, enemies, CommandChannel) ->
-    CommandChannel.send @commands.moveForward 20
-    CommandChannel.send @commands.rotateTurretCCW(0.5)
-    CommandChannel.send @commands.fire()
-    CommandChannel.send @commands.rotateCW .4
+    CommandChannel.send @command.moveForward 20
+    CommandChannel.send @command.rotateTurretCCW(0.5)
+    CommandChannel.send @command.fire()
+    CommandChannel.send @command.rotateCW .4

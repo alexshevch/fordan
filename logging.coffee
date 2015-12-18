@@ -10,6 +10,9 @@ styling = ->
   tags: true
   border: type: 'line'
   scrollable : true
+  scrollbar:
+    bf: 'red'
+    fg: 'blue'
   style:
     fg: 'white'
     bg: 'magenta'
@@ -42,25 +45,23 @@ screen.key [
   'q'
   'C-c'
 ], (ch, key) ->
-  spawn = require('child_process').spawn
-  spawn 'reset'
   process.exit 0
 
 _ = require 'lodash'
 exports.screen1 = _.throttle (data) ->
-  box.setContent data
+  box.setContent "screen\n#{new Date()}\n#{data}"
   screen.render()
 , 1000
 exports.screen2 = _.throttle (data) ->
-  box2.setContent data
+  box2.setContent "screen2\n#{new Date()}\n#{data}"
   screen.render()
 , 1000
 exports.screen3 = _.throttle (data) ->
-  box3.addItem data
+  box3.setContent "screen3\n#{new Date()}\n#{data}"
   screen.render()
 , 1000
 exports.screen4 = _.throttle (data) ->
-  box4.addItem data
+  box4.setContent "screen4\n#{new Date()}\n#{data}"
   screen.render()
 , 1000
 # Render the screen.

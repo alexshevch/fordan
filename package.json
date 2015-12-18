@@ -17,6 +17,7 @@
   "dependencies": {
     "async": "^1.5.0",
     "blessed": "^0.1.81",
+    "cson": "^3.0.2",
     "lodash": "^3.10.1",
     "optimist": "^0.6.1",
     "zmq": "^2.14.0"
