@@ -64,6 +64,21 @@ class StateChannel
     sock.on 'message', @handleMessage.bind @
     sock.subscribe(@token)
 
+  initialize : (data) ->
+    @commandChannel.connect()
+
+    friendly = data.players[1]
+    if friendly.name isnt @teamName
+      friendly = data.players[0]
+
+    screen2 friendly.name
+    @tanks = {}
+    for tank in friendly.tanks
+      @tanks[tank.id] =  new Tank(tank)
+
+    shouldInitialize = false
+    return
+
   handleMessage : (token, state) ->
     data = JSON.parse state
     if data.comm_type isnt 'GAMESTATE'
@@ -77,24 +92,19 @@ class StateChannel
       process.exit 0
 
     if shouldInitialize
-      @commandChannel.connect()
+      return @initialize data
 
-      friendly = data.players[1]
-      @tanks = {}
-      for tank in friendly.tanks
-        atank = new Tank(tank)
-        @tanks[tank.id] = atank
 
-      shouldInitialize = false
-      return
-
-    if (data.comm_type is 'GAMESTATE') and (shouldInitialize is false)
-      for tank in data.players[1].tanks
-        @tanks[tank.id].update tank
-        @tanks[tank.id].handleMessage data.map,
-          data.players[0].tanks,
-          data.players[1].tanks,
-          @commandChannel
+    if (data.comm_type is 'GAMESTATE')
+      try
+        for tank in data.players[1].tanks
+          @tanks[tank.id].update tank
+          @tanks[tank.id].handleMessage data.map,
+            data.players[0].tanks,
+            data.players[1].tanks,
+            @commandChannel
+      catch
+        shouldInitialize = true
     return
 
 SC = new StateChannel(argv)
