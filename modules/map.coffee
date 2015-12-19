@@ -16,8 +16,8 @@ module.exports =
 
   getRadToTarget : (friendly, enemy) ->
     angle = Math.atan2.apply(Math, @getXYof friendly) - Math.atan2.apply(Math, @getXYof enemy)
-    # if angle < 0
-    #   angle += 2 * Math.PI
+    if angle < 0
+      angle += 2 * Math.PI
     angle
 
   # http://gamedev.stackexchange.com/questions/1885/target-tracking-when-to-accelerate-and-decelerate-a-rotating-turret

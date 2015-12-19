@@ -18,7 +18,7 @@ newBox = (idx, height = 10) ->
   style = styling()
   if (idx % 2) is 0
     style.left = 0
-    style.top = totalOdd
+    style.top = totalEven
     totalEven += height
   else
     style.right = 0

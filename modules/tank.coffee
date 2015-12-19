@@ -27,8 +27,20 @@ module.exports = class Tank
     enemy = Map.getNearestEnemy @, enemies
     rad = Map.getRadToTarget enemy, @
     screen3 rad.toString()
+    if @tracks < rad
+      CommandChannel
+      .send @command.rotateTurretCW rad - @tracks
+    else
+      CommandChannel
+      .send @command.rotateTurretCCW rad - @tracks
+
+    if @turret < rad
+      CommandChannel
+      .send @command.rotateCCW rad - @tracks
+    else
+      CommandChannel
+      .send @command.rotateCW rad - @tracks
+
     CommandChannel
     .send @command.moveForward 10
-    .send @command.rotateTurretCW rad
     .send @command.fire()
-    .send @command.rotateCW rad
