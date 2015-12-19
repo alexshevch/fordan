@@ -2,18 +2,31 @@
 
 module.exports =
 
+  getXYof : (tank) ->
+    [tank.position[0], tank.position[1]]
 
-  getNearestEnemy : (friendlyTank, enemyTanks) ->
+  distanceToPoint : (pointA, pointB) ->
+    Math.hypot(Math.abs(pointA[0] - pointB[0]), Math.abs(pointA[1] - pointB[1]))
+
+  getNearestEnemy : (friendly, enemies) ->
     # Place holder
-    enemyTanks[0]
+    for enemy in enemies
+      if enemy.alive
+        return enemy
+
+  getRadToTarget : (friendly, enemy) ->
+    angle = Math.atan2.apply(Math, @getXYof friendly) - Math.atan2.apply(Math, @getXYof enemy)
+    # if angle < 0
+    #   angle += 2 * Math.PI
+    angle
 
   # http://gamedev.stackexchange.com/questions/1885/target-tracking-when-to-accelerate-and-decelerate-a-rotating-turret
-  enemyRads : (target, turret) ->
+  enemyRads : (enemy, friendly) ->
     turretToTarget =
-      x: target.position[0] - turret.position[0]
-      y: target.position[1] - turret.position[1]
+      x: enemy.position[0] - friendly.position[0]
+      y: enemy.position[1] - friendly.position[1]
     desiredAngle = Math.atan2(turretToTarget.y, turretToTarget.x)
-    angleDiff = desiredAngle - turret.turret # angle
+    angleDiff = desiredAngle - friendly.turret # angle
 
     # Normalize angle to [-PI,PI] range. This ensures that the turret
     # turns the shortest way.
@@ -26,4 +39,4 @@ module.exports =
     angularAcc = C0 * angleDiff - C1 * 1.5;
 
     predictionTime = 1 # One second prediction, you need to experiment.
-    turretToTarget = target.position + predictionTime * target.speed - turret.position;
+    turretToTarget = enemy.position + predictionTime * enemy.speed - friendly.position;

@@ -7,16 +7,20 @@ argv = require('optimist')
 .alias 'n', 'teamName'
 .alias 'p', 'password'
 .argv;
-logging = require('./logging.coffee')
-Tank = require './modules/tank.coffee'
+
+
+Tank = require './modules/tank'
+logging = require('./modules/logging.coffee')
 
 _ = require 'lodash'
 cson = require 'cson'
 zmq = require 'zmq'
 
+
 class CommandChannel
   sock = zmq.socket 'req'
-
+  screen0 = logging 0,4
+  screen1 = logging 1,3
   constructor : (options) ->
     {@server, @token, @password, @teamName} = options
     sock.connect "tcp://#{@server}:5557"
@@ -29,9 +33,9 @@ class CommandChannel
     data = JSON.parse data
     if data.comm_type is "MatchConnectResp"
       @client_token = data.client_token
-      logging.screen2 cson.stringify(data, null, 2)
+      screen0 data
     else
-      logging.screen1 cson.stringify(data, null, 2)
+      screen1 data
 
   connect : ->
     sock.send @MatchConnect()
@@ -46,10 +50,12 @@ class CommandChannel
   send : (data) ->
     data.client_token = @client_token
     sock.send JSON.stringify data
+    @
 
 class StateChannel
   sock = zmq.socket 'sub'
   shouldInitialize = true
+  screen2 = logging 2
 
   constructor : (options) ->
     {@server, @token, @password, @teamName} = options
@@ -61,7 +67,7 @@ class StateChannel
   handleMessage : (token, state) ->
     data = JSON.parse state
     if data.comm_type isnt 'GAMESTATE'
-      logging.screen2 cson.stringify(data, null, 2)
+      screen2 data
 
     if (data.comm_type is "GAME_END") or (data.comm_type is "GAME_START")
       shouldInitialize = true
@@ -76,7 +82,9 @@ class StateChannel
       friendly = data.players[1]
       @tanks = {}
       for tank in friendly.tanks
-        @tanks[tank.id] = new Tank(tank)
+        atank = new Tank(tank)
+        @tanks[tank.id] = atank
+
       shouldInitialize = false
       return
 

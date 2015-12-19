@@ -1,8 +1,10 @@
+logging = require('./logging.coffee')
 module.exports = class Tank
   Map = require './map.coffee'
   Commands = require './commands.coffee'
   math = require 'mathjs'
   _ = require 'lodash'
+  screen3 = logging 3
 
   tankTypes =
     fast :
@@ -21,13 +23,12 @@ module.exports = class Tank
   update : (data) ->
     {@position, @tracks, @type, @turret, @projectiles} = data
 
-  target : (enemyId) ->
-    1
-
   handleMessage : (map, enemies, friendlys, CommandChannel) ->
     enemy = Map.getNearestEnemy @, enemies
-
-    CommandChannel.send @command.moveForward 20
-    CommandChannel.send @command.rotateTurretCW(0.4)
-    CommandChannel.send @command.fire()
-    CommandChannel.send @command.rotateCW .4
+    rad = Map.getRadToTarget enemy, @
+    screen3 rad.toString()
+    CommandChannel
+    .send @command.moveForward 10
+    .send @command.rotateTurretCW rad
+    .send @command.fire()
+    .send @command.rotateCW rad

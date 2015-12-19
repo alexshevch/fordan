@@ -15,11 +15,9 @@ Should sync from local to remote
 
 # running in Development
 
-I really like to use something like
+Nodemon will watch for changes and restart.
 
     nodemon index.coffee -t a83e1150-a227-419a-8113-03b8de85e597 -s ip-10-0-0-149.ec2.internal
-
-so on file change the program will restart.
 
 # Map layout
 
@@ -45,7 +43,7 @@ so on file change the program will restart.
     |     +-------+X+-+                     |
     |     |       X   |  Tank               |
     |     |      X    |                     |
-    |  +-------+X+-------+Unit ^ector       |
+    |  +-------+X+-------+Unit Vector       |
     |     |     X     |                     |
     |     |       X   |                     |
     |     +--------+X++  240° ~= 4.18879rad |
