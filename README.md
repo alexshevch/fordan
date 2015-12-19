@@ -22,17 +22,18 @@ I really like to use something like
 so on file change the program will restart.
 
 # Map layout
-    +---------------------+
-    |                     |
-    |                     |
-    |                     |
-    |                     |
-    |                     |
-    |                     |
-    |                     |
-    |                     |
-y:0 +---------------------+
-    x:0
+
+        +---------------------+
+        |                     |
+        |                     |
+        |                     |
+        |                     |
+        |                     |
+        |                     |
+        |                     |
+        |                     |
+    y:0 +---------------------+
+        x:0
 
 # How radians are given
 
