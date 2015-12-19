@@ -67,6 +67,7 @@ class StateChannel
   initialize : (data) ->
     @commandChannel.connect()
 
+    # index one isnt always the friendly team
     friendly = data.players[1]
     if friendly.name isnt @teamName
       friendly = data.players[0]

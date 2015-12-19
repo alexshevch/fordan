@@ -29,17 +29,17 @@ module.exports = class Tank
     screen3 rad.toString()
     if @tracks > rad
       CommandChannel
-      .send @command.rotateTurretCW rad
+      .send @command.turretCW rad
     else
       CommandChannel
-      .send @command.rotateTurretCCW rad
+      .send @command.turretCCW rad
 
     if @turret > rad
       CommandChannel
-      .send @command.rotateCCW rad
+      .send @command.tankCCW rad
     else
       CommandChannel
-      .send @command.rotateCW rad
+      .send @command.tankCW rad
 
     CommandChannel
     .send @command.moveForward 10
