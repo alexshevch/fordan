@@ -81,6 +81,11 @@ class StateChannel
     if friendly.name isnt @teamName
       friendly = data.players[0]
     return friendly
+  getEnemies : (data) ->
+    enemy = data.players[1]
+    if enemy.name is @teamName
+      enemy = data.players[0]
+    return enemy
 
   handleMessage : (token, state) ->
     data = JSON.parse state
@@ -103,12 +108,11 @@ class StateChannel
       # I'm guessing @initalize is overwriting everything,
       # but that should only happen at the beginning.
       friendly = @getFriendlyTanks data
+      enemy = @getEnemies data
       try
         for tank in friendly.tanks
           @tanks[tank.id].update tank
-          @tanks[tank.id].handleMessage data.map,
-            data.players[0].tanks,
-            data.players[1].tanks
+          @tanks[tank.id].handleMessage data.map, friendly.tanks, enemy.tanks
       catch e
         screen2 e.stack
         shouldInitialize = true

@@ -27,8 +27,8 @@ module.exports = class Tank
     fpos = @position
     epos = enemy.position
 
-    ang1 = Math.atan2(epos[1] - fpos[1] + enemy.hitRadius, enemy.hitRadius - fpos[0] + enemy.hitRadius)
-    ang2 = Math.atan2(epos[1] - fpos[1] - enemy.hitRadius, enemy.hitRadius - fpos[0] - enemy.hitRadius)
+    ang1 = Math.atan2(epos[1] - fpos[1] + enemy.hitRadius, epos[0] - fpos[0] + enemy.hitRadius)
+    ang2 = Math.atan2(epos[1] - fpos[1] - enemy.hitRadius, epos[0] - fpos[0] - enemy.hitRadius)
     cang = @turret
     ang = (ang1 + ang2) / 2
 
