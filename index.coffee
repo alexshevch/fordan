@@ -39,13 +39,10 @@ class CommandChannel
       screen1 data
 
   connect : ->
-    sock.send @MatchConnect()
-
-  MatchConnect : ->
-    JSON.stringify
-      "comm_type" : "MatchConnect",
-      "match_token" : @token,
-      "team_name" : @teamName,
+    sock.send JSON.stringify
+      "comm_type" : "MatchConnect"
+      "match_token" : @token
+      "team_name" : @teamName
       "password" : @password
 
   send : (data) ->
@@ -62,7 +59,7 @@ class StateChannel
     {@server, @token, @password, @teamName} = options
     @commandChannel = new CommandChannel(options)
     sock.connect "tcp://#{@server}:5556"
-    sock.on 'message', @handleMessage.bind(@)
+    sock.on 'message', @handleUpdate.bind(@)
     sock.subscribe(@token)
 
   initialize : (friendly) ->
@@ -75,19 +72,20 @@ class StateChannel
     shouldInitialize = false
     return
 
-  getFriendlyTanks : (data) ->
-    # index one isnt always the friendly team
+  # index one isnt always the friendly team and vice versa
+  getFriendly : (data) ->
     friendly = data.players[1]
     if friendly.name isnt @teamName
       friendly = data.players[0]
     return friendly
-  getEnemies : (data) ->
+
+  getEnemy : (data) ->
     enemy = data.players[1]
     if enemy.name is @teamName
       enemy = data.players[0]
     return enemy
 
-  handleMessage : (token, state) ->
+  handleUpdate : (token, state) ->
     data = JSON.parse state
     if data.comm_type isnt 'GAMESTATE'
       screen2 data
@@ -100,15 +98,11 @@ class StateChannel
       process.exit 0
 
     if shouldInitialize
-      return @initialize(@getFriendlyTanks data)
+      return @initialize(@getFriendly data)
 
     if (data.comm_type is 'GAMESTATE')
-      # I dont know why but for some reason
-      # the tank functions will be undefined
-      # I'm guessing @initalize is overwriting everything,
-      # but that should only happen at the beginning.
-      friendly = @getFriendlyTanks data
-      enemy = @getEnemies data
+      friendly = @getFriendly data
+      enemy = @getEnemy data
       try
         for tank in friendly.tanks
           @tanks[tank.id].update tank

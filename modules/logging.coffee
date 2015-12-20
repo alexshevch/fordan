@@ -27,6 +27,8 @@ newBox = (idx, height = 10) ->
   style.height = height
   box = blessed.box(style)
   screen.append box
+  # Render the screen.
+  screen.render()
   box
 
 # Quit on Escape, q, or Control-C.
@@ -48,6 +50,3 @@ module.exports = (idx, height) ->
     box.setContent data
     screen.render()
   , 1000
-
-# Render the screen.
-screen.render()
