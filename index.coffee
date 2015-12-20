@@ -112,7 +112,7 @@ class StateChannel
       try
         for tank in friendly.tanks
           @tanks[tank.id].update tank
-          @tanks[tank.id].handleMessage data.map, friendly.tanks, enemy.tanks
+          @tanks[tank.id].handleMessage data.map, enemy.tanks, friendly.tanks
       catch e
         screen2 e.stack
         shouldInitialize = true
