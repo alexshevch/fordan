@@ -70,8 +70,6 @@ module.exports = class Tank
       .send @command.tankCCW(Math.abs(ang) % (2 * Math.PI))
     return
 
-
-
   handleMessage : (map, enemies, friendlys) ->
     enemy = Map.getNearestEnemy enemies, @
     @target enemy

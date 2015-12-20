@@ -19,6 +19,15 @@ Nodemon will watch for changes and restart.
 
     nodemon index.coffee -t a83e1150-a227-419a-8113-03b8de85e597 -s ip-10-0-0-149.ec2.internal
 
+# Remote running
+
+Now that syncing is working?
+SSH into the remote machine and run `npm install`
+This is necessary so that compiled libraries work.
+Running like this also works
+
+    coffee . -t a83e1150-a227-419a-8113-03b8de85e597 -s ip-10-0-0-149.ec2.internal
+
 # Map layout
 
         +---------------------+
@@ -52,6 +61,8 @@ Nodemon will watch for changes and restart.
     |                     X                 |
     |                                       |
     +---------------------------------------+
+
+    * unit vector doesn't change if the tank were rotated in this image (hard to draw)
 
 # function conventions
 
