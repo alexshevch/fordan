@@ -23,7 +23,7 @@ module.exports = class Tank
   update : (data) ->
     {@position, @tracks, @type, @turret, @projectiles} = data
 
-  targetTurret : (enemy) ->
+  target : (enemy) ->
     fpos = @position
     epos = enemy.position
 
@@ -39,15 +39,14 @@ module.exports = class Tank
     if(cang > ang)
       ang = cang - ang
       @CommandChannel
-      .send @command.turret.CW(Math.abs(ang) % (2 * Math.PI))
+      .send @command.turretCW(Math.abs(ang) % (2 * Math.PI))
 
     else
       ang = ang - cang
       @CommandChannel
-      .send @command.turret.CCW(Math.abs(ang) % (2 * Math.PI))
+      .send @command.turretCCW(Math.abs(ang) % (2 * Math.PI))
 
-  # Duplicate of above but there probably will be huge differences above.
-  targetTracks : (enemy) ->
+    # =============== TODO =============== clean up
     fpos = @position
     epos = enemy.position
 
@@ -63,18 +62,17 @@ module.exports = class Tank
     if(cang > ang)
       ang = cang - ang
       @CommandChannel
-      .send @command.tank.CW(Math.abs(ang) % (2 * Math.PI))
+      .send @command.tankCW(Math.abs(ang) % (2 * Math.PI))
 
     else
       ang = ang - cang
       @CommandChannel
-      .send @command.tank.CCW(Math.abs(ang) % (2 * Math.PI))
+      .send @command.tankCCW(Math.abs(ang) % (2 * Math.PI))
     return
 
   handleMessage : (map, enemies, friendlys) ->
     enemy = Map.getNearestEnemy enemies, @
-    @targetTurret enemy
-    @targetTracks enemy
+    @target enemy
 
     if Map.distanceToPoint(enemy.position, @position) <= 50
       @CommandChannel

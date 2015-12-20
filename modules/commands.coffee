@@ -1,30 +1,5 @@
 module.exports = class Commands
-
   constructor : (@id) ->
-
-  turret :
-    CW : (rads) =>
-      tank_id : @id
-      comm_type : "ROTATE_TURRET"
-      direction : "CW"
-      rads : rads
-    CCW : (rads) =>
-      tank_id : @id
-      comm_type : "ROTATE_TURRET"
-      direction : "CCW"
-      rads : rads
-  tank :
-    CW : (rads) =>
-      tank_id : @id
-      comm_type : "ROTATE"
-      direction : "CW"
-      rads : rads
-    CCW : (rads) =>
-      tank_id : @id
-      comm_type : "ROTATE"
-      direction : "CCW"
-      rads : rads
-
   stop : (type) ->
     tank_id : @id
     comm_type : "STOP"
@@ -42,3 +17,25 @@ module.exports = class Commands
     comm_type : "MOVE"
     direction : "REV"
     distance : distance
+  turretCW : (rads) ->
+    tank_id : @id
+    comm_type : "ROTATE_TURRET"
+    direction : "CW"
+    rads : rads
+  turretCCW : (rads) ->
+    tank_id : @id
+    comm_type : "ROTATE_TURRET"
+    direction : "CCW"
+    rads : rads
+  tankCW : (rads) ->
+    tank_id : @id
+    comm_type : "ROTATE"
+    # CW or CCW
+    direction : "CW"
+    rads : rads
+  tankCCW : (rads) ->
+    tank_id : @id
+    comm_type : "ROTATE"
+    # CW or CCW
+    direction : "CCW"
+    rads : rads

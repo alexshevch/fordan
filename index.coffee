@@ -20,7 +20,7 @@ zmq = require 'zmq'
 class CommandChannel
   sock = zmq.socket 'req'
   screen0 = logging 0,4
-  screen1 = logging 1,3
+  screen1 = logging 1,5
 
   constructor : (options) ->
     {@server, @token, @password, @teamName} = options
@@ -54,6 +54,7 @@ class StateChannel
   sock = zmq.socket 'sub'
   shouldInitialize = true
   screen2 = logging 2
+  globalState = {}
 
   constructor : (options) ->
     {@server, @token, @password, @teamName} = options
@@ -67,7 +68,7 @@ class StateChannel
 
     @tanks = {}
     for tank in friendly.tanks
-      @tanks[tank.id] = new Tank(tank, @commandChannel)
+      @tanks[tank.id] = new Tank(tank, @commandChannel, globalState)
 
     shouldInitialize = false
     return
