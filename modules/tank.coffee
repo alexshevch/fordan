@@ -23,12 +23,15 @@ module.exports = class Tank
   update : (data) ->
     {@position, @tracks, @type, @turret, @projectiles} = data
 
+
+
   target : (enemy) ->
     fpos = @position
     epos = enemy.position
 
     ang1 = Math.atan2(epos[1] - fpos[1] + enemy.hitRadius, epos[0] - fpos[0] + enemy.hitRadius)
     ang2 = Math.atan2(epos[1] - fpos[1] - enemy.hitRadius, epos[0] - fpos[0] - enemy.hitRadius)
+    # This controls to tracks to point to the enemy
     cang = @turret
     ang = (ang1 + ang2) / 2
 
@@ -39,15 +42,38 @@ module.exports = class Tank
       ang = cang - ang
       @CommandChannel
       .send @command.turretCW(Math.abs(ang) % (2 * Math.PI))
-      .send @command.tankCW(Math.abs(ang) % (2 * Math.PI))
 
     else
       ang = ang - cang
       @CommandChannel
       .send @command.turretCCW(Math.abs(ang) % (2 * Math.PI))
-      .send @command.tankCCW(Math.abs(ang) % (2 * Math.PI))
 
-    screen3 @position
+    # =============== TODO =============== clean up
+    fpos = @position
+    epos = enemy.position
+
+    ang1 = Math.atan2(epos[1] - fpos[1] + enemy.hitRadius, epos[0] - fpos[0] + enemy.hitRadius)
+    ang2 = Math.atan2(epos[1] - fpos[1] - enemy.hitRadius, epos[0] - fpos[0] - enemy.hitRadius)
+    # This controls to tracks to point to the enemy
+    cang = @tracks
+    ang = (ang1 + ang2) / 2
+
+    if ang < 0
+      ang = (ang + (2 * Math.PI) ) % (2 * Math.PI)
+
+    if(cang > ang)
+      ang = cang - ang
+      @CommandChannel
+      .send @command.tankCW(Math.abs(ang) % (2 * Math.PI))
+
+    else
+      ang = ang - cang
+      @CommandChannel
+      .send @command.tankCCW(Math.abs(ang) % (2 * Math.PI))
+    return
+
+
+
   handleMessage : (map, enemies, friendlys) ->
     enemy = Map.getNearestEnemy enemies, @
     @target enemy

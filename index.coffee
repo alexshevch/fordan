@@ -62,7 +62,7 @@ class StateChannel
     {@server, @token, @password, @teamName} = options
     @commandChannel = new CommandChannel(options)
     sock.connect "tcp://#{@server}:5556"
-    sock.on 'message', @handleMessage.bind @
+    sock.on 'message', @handleMessage.bind(@)
     sock.subscribe(@token)
 
   initialize : (friendly) ->
