@@ -52,3 +52,7 @@ Nodemon will watch for changes and restart.
     |                     X                 |
     |                                       |
     +---------------------------------------+
+
+# function conventions
+
+- Function arguments that need to know enemy tanks and friendly tanks will have enemies first

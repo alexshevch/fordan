@@ -47,9 +47,9 @@ module.exports = class Tank
       .send @command.turretCCW(Math.abs(ang) % (2 * Math.PI))
       .send @command.tankCCW(Math.abs(ang) % (2 * Math.PI))
 
-
+    screen3 @position
   handleMessage : (map, enemies, friendlys) ->
-    enemy = Map.getNearestEnemy @, enemies
+    enemy = Map.getNearestEnemy enemies, @
     @target enemy
 
     @CommandChannel
