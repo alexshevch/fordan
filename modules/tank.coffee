@@ -23,8 +23,6 @@ module.exports = class Tank
   update : (data) ->
     {@position, @tracks, @type, @turret, @projectiles} = data
 
-
-
   target : (enemy) ->
     fpos = @position
     epos = enemy.position
@@ -78,7 +76,11 @@ module.exports = class Tank
     enemy = Map.getNearestEnemy enemies, @
     @target enemy
 
+    if Map.distanceToPoint(enemy.position, @position) <= 50
+      @CommandChannel
+      .send @command.fire()
+
     @CommandChannel
     .send @command.moveForward 10
-    .send @command.fire()
+
     return
