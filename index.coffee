@@ -21,6 +21,7 @@ class CommandChannel
   sock = zmq.socket 'req'
   screen0 = logging 0,4
   screen1 = logging 1,3
+
   constructor : (options) ->
     {@server, @token, @password, @teamName} = options
     sock.connect "tcp://#{@server}:5557"
@@ -64,21 +65,22 @@ class StateChannel
     sock.on 'message', @handleMessage.bind @
     sock.subscribe(@token)
 
-  initialize : (data) ->
+  initialize : (friendly) ->
     @commandChannel.connect()
 
+    @tanks = {}
+    for tank in friendly.tanks
+      @tanks[tank.id] = new Tank(tank, @commandChannel)
+
+    shouldInitialize = false
+    return
+
+  getFriendlyTanks : (data) ->
     # index one isnt always the friendly team
     friendly = data.players[1]
     if friendly.name isnt @teamName
       friendly = data.players[0]
-
-    screen2 friendly.name
-    @tanks = {}
-    for tank in friendly.tanks
-      @tanks[tank.id] =  new Tank(tank)
-
-    shouldInitialize = false
-    return
+    return friendly
 
   handleMessage : (token, state) ->
     data = JSON.parse state
@@ -93,18 +95,22 @@ class StateChannel
       process.exit 0
 
     if shouldInitialize
-      return @initialize data
-
+      return @initialize(@getFriendlyTanks data)
 
     if (data.comm_type is 'GAMESTATE')
+      # I dont know why but for some reason
+      # the tank functions will be undefined
+      # I'm guessing @initalize is overwriting everything,
+      # but that should only happen at the beginning.
+      friendly = @getFriendlyTanks data
       try
-        for tank in data.players[1].tanks
+        for tank in friendly.tanks
           @tanks[tank.id].update tank
           @tanks[tank.id].handleMessage data.map,
             data.players[0].tanks,
-            data.players[1].tanks,
-            @commandChannel
-      catch
+            data.players[1].tanks
+      catch e
+        screen2 e.stack
         shouldInitialize = true
     return
 

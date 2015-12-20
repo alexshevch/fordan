@@ -2,9 +2,6 @@
 
 module.exports =
 
-  getXYof : (tank) ->
-    [tank.position[0], tank.position[1]]
-
   distanceToPoint : (pointA, pointB) ->
     Math.hypot(Math.abs(pointA[0] - pointB[0]), Math.abs(pointA[1] - pointB[1]))
 
@@ -13,12 +10,6 @@ module.exports =
     for enemy in enemies
       if enemy.alive
         return enemy
-
-  getRadToTarget : (friendly, enemy) ->
-    angle = Math.atan2.apply(Math, @getXYof friendly) - Math.atan2.apply(Math, @getXYof enemy)
-    # if angle < 0
-    #   angle += 2 * Math.PI
-    angle
 
   # http://gamedev.stackexchange.com/questions/1885/target-tracking-when-to-accelerate-and-decelerate-a-rotating-turret
   enemyRads : (enemy, friendly) ->
@@ -36,7 +27,7 @@ module.exports =
       angleDiff -= 2*Math.PI
     C0 = 0.5 # Must be determined by trial error
     C1 = 2*Math.sqrt(C0)
-    angularAcc = C0 * angleDiff - C1 * 1.5;
+    angularAcc = C0 * angleDiff - C1 * 1.5
 
     predictionTime = 1 # One second prediction, you need to experiment.
     turretToTarget = enemy.position + predictionTime * enemy.speed - friendly.position;

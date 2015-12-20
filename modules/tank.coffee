@@ -16,31 +16,43 @@ module.exports = class Tank
       turretRotation: 1 # rads
       tankRotation: 1 # rads
 
-  constructor : (tank) ->
+  constructor : (tank, @CommandChannel) ->
     _.extend @, tank
     @command = new Commands(@id)
 
   update : (data) ->
     {@position, @tracks, @type, @turret, @projectiles} = data
 
-  handleMessage : (map, enemies, friendlys, CommandChannel) ->
+  target : (enemy) ->
+    fpos = @position
+    epos = enemy.position
+
+    ang1 = Math.atan2(epos[1] - fpos[1] + enemy.hitRadius, enemy.hitRadius - fpos[0] + enemy.hitRadius)
+    ang2 = Math.atan2(epos[1] - fpos[1] - enemy.hitRadius, enemy.hitRadius - fpos[0] - enemy.hitRadius)
+    cang = @turret
+    ang = (ang1 + ang2) / 2
+
+    if ang < 0
+      ang = (ang + (2 * Math.PI) ) % (2 * Math.PI)
+
+    if(cang > ang)
+      ang = cang - ang
+      @CommandChannel
+      .send @command.turretCW(Math.abs(ang) % (2 * Math.PI))
+      .send @command.tankCW(Math.abs(ang) % (2 * Math.PI))
+
+    else
+      ang = ang - cang
+      @CommandChannel
+      .send @command.turretCCW(Math.abs(ang) % (2 * Math.PI))
+      .send @command.tankCCW(Math.abs(ang) % (2 * Math.PI))
+
+
+  handleMessage : (map, enemies, friendlys) ->
     enemy = Map.getNearestEnemy @, enemies
-    rad = Map.getRadToTarget enemy, @
-    screen3 rad.toString()
-    if @tracks > rad
-      CommandChannel
-      .send @command.turretCW rad
-    else
-      CommandChannel
-      .send @command.turretCCW rad
+    @target enemy
 
-    if @turret > rad
-      CommandChannel
-      .send @command.tankCCW rad
-    else
-      CommandChannel
-      .send @command.tankCW rad
-
-    CommandChannel
+    @CommandChannel
     .send @command.moveForward 10
     .send @command.fire()
+    return
