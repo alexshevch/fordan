@@ -4,7 +4,7 @@ screen4 = logging 4
 module.exports =
 
   distanceToPoint : (pointA, pointB) ->
-    Math.hypot(Math.abs(pointA[0] - pointB[0]), Math.abs(pointA[1] - pointB[1]))
+    math.chain(pointA).subtract(pointB).abs().hypot().done()
 
   defaultReturn : ->
     true

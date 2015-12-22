@@ -23,7 +23,7 @@ module.exports = class Tank
   update : (data) ->
     {@position, @tracks, @type, @turret, @projectiles} = data
 
-  target : (enemy) ->
+  targetTurret : (enemy) ->
     fpos = @position
     epos = enemy.position
 
@@ -46,7 +46,7 @@ module.exports = class Tank
       @CommandChannel
       .send @command.turretCCW(Math.abs(ang) % (2 * Math.PI))
 
-    # =============== TODO =============== clean up
+  rotateTracks : (enemy) ->
     fpos = @position
     epos = enemy.position
 
@@ -72,8 +72,9 @@ module.exports = class Tank
 
   handleMessage : (map, enemies, friendlys) ->
     enemy = Map.getNearestEnemy enemies, @
-    @target enemy
-
+    @targetTurret enemy
+    @rotateTracks enemy
+    
     if Map.distanceToPoint(enemy.position, @position) <= 50
       @CommandChannel
       .send @command.fire()
