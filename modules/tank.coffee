@@ -74,7 +74,7 @@ module.exports = class Tank
     enemy = Map.getNearestEnemy enemies, @
     @targetTurret enemy
     @rotateTracks enemy
-    
+
     if Map.distanceToPoint(enemy.position, @position) <= 50
       @CommandChannel
       .send @command.fire()

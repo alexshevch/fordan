@@ -1,6 +1,7 @@
 
 logging = require('./logging.coffee')
 screen4 = logging 4
+math = require 'mathjs'
 module.exports =
 
   distanceToPoint : (pointA, pointB) ->
