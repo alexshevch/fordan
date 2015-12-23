@@ -1,10 +1,12 @@
+Commands = require './commands.coffee'
+Map = require './map.coffee'
+_ = require 'lodash'
 logging = require('./logging.coffee')
+math = require 'mathjs'
+ppDist = require("point-polygon-distance")
+screen3 = logging 3
+
 module.exports = class Tank
-  Map = require './map.coffee'
-  Commands = require './commands.coffee'
-  math = require 'mathjs'
-  _ = require 'lodash'
-  screen3 = logging 3
 
   tankTypes =
     fast :
@@ -16,7 +18,7 @@ module.exports = class Tank
       turretRotation: 1 # rads
       tankRotation: 1 # rads
 
-  constructor : (tank, @CommandChannel) ->
+  constructor : (tank, @CommandChannel, @globalState) ->
     _.extend @, tank
     @command = new Commands(@id)
 
@@ -45,6 +47,7 @@ module.exports = class Tank
       ang = ang - cang
       @CommandChannel
       .send @command.turretCCW(Math.abs(ang) % (2 * Math.PI))
+    return
 
   rotateTracks : (enemy) ->
     fpos = @position
@@ -70,7 +73,7 @@ module.exports = class Tank
       .send @command.tankCCW(Math.abs(ang) % (2 * Math.PI))
     return
 
-  handleMessage : (map, enemies, friendlys) ->
+  handleMessage : (enemies, friendlys) ->
     enemy = Map.getNearestEnemy enemies, @
     @targetTurret enemy
     @rotateTracks enemy

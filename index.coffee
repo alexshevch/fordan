@@ -10,12 +10,12 @@ argv = require('optimist')
 
 
 Tank = require './modules/tank'
-logging = require('./modules/logging.coffee')
+logging = require './modules/logging.coffee'
 
 _ = require 'lodash'
 cson = require 'cson'
 zmq = require 'zmq'
-
+math = require 'mathjs'
 
 class CommandChannel
   sock = zmq.socket 'req'
@@ -63,8 +63,20 @@ class StateChannel
     sock.on 'message', @handleUpdate.bind(@)
     sock.subscribe(@token)
 
-  initialize : (friendly) ->
+  initialize : (data) ->
+    friendly = @getFriendly(data)
     @commandChannel.connect()
+
+    globalState.map = data.map
+    for tile in data.map.terrain
+      t = tile.boundingBox
+      tile.polygon = [
+        t.corner
+        [t.corner[0], t.corner[1] + t.size[1]]
+        math.add(t.corner, t.size)
+        [t.corner[0]+t.size[0], t.corner[1]]
+      ]
+      tile.center = math.chain(t.size).divide(2).add(t.corner)
 
     @tanks = {}
     for tank in friendly.tanks
@@ -99,7 +111,7 @@ class StateChannel
       process.exit 0
 
     if shouldInitialize
-      return @initialize(@getFriendly data)
+      return @initialize(data)
 
     if (data.comm_type is 'GAMESTATE')
       friendly = @getFriendly data
@@ -107,7 +119,7 @@ class StateChannel
       try
         for tank in friendly.tanks
           @tanks[tank.id].update tank
-          @tanks[tank.id].handleMessage data.map, enemy.tanks, friendly.tanks
+          @tanks[tank.id].handleMessage enemy.tanks, friendly.tanks
       catch e
         screen2 e.stack
         shouldInitialize = true
