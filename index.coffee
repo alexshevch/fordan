@@ -8,19 +8,19 @@ argv = require('optimist')
 .alias 'p', 'password'
 .argv;
 
-
 Tank = require './modules/tank'
+World = require './modules/world.coffee'
 logging = require './modules/logging.coffee'
 
 _ = require 'lodash'
-cson = require 'cson'
 zmq = require 'zmq'
 math = require 'mathjs'
 
+screen0 = logging 0,4
+screen1 = logging 1,5
+
 class CommandChannel
   sock = zmq.socket 'req'
-  screen0 = logging 0,4
-  screen1 = logging 1,5
 
   constructor : (options) ->
     {@server, @token, @password, @teamName} = options
@@ -50,11 +50,12 @@ class CommandChannel
     sock.send JSON.stringify data
     @
 
+
+screen2 = logging 2
+
 class StateChannel
   sock = zmq.socket 'sub'
   shouldInitialize = true
-  screen2 = logging 2
-  globalState = {}
 
   constructor : (options) ->
     {@server, @token, @password, @teamName} = options
@@ -67,20 +68,10 @@ class StateChannel
     friendly = @getFriendly(data)
     @commandChannel.connect()
 
-    globalState.map = data.map
-    for tile in data.map.terrain
-      t = tile.boundingBox
-      tile.polygon = [
-        t.corner
-        [t.corner[0], t.corner[1] + t.size[1]]
-        math.add(t.corner, t.size)
-        [t.corner[0]+t.size[0], t.corner[1]]
-      ]
-      tile.center = math.chain(t.size).divide(2).add(t.corner)
-
+    @world = new World(data.map.terrain)
     @tanks = {}
     for tank in friendly.tanks
-      @tanks[tank.id] = new Tank(tank, @commandChannel, globalState)
+      @tanks[tank.id] = new Tank(tank, @commandChannel, @world)
 
     shouldInitialize = false
     return

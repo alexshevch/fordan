@@ -21,8 +21,6 @@
     "lodash": "^3.10.1",
     "mathjs": "^2.5.0",
     "optimist": "^0.6.1",
-    "point-polygon-distance": "0.0.0",
-    "robust-determinant-3": "0.0.1",
     "zmq": "^2.14.0"
   }
 }

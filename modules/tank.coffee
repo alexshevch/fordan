@@ -1,25 +1,16 @@
+
 Commands = require './commands.coffee'
-Map = require './map.coffee'
-_ = require 'lodash'
 logging = require('./logging.coffee')
+
+_ = require 'lodash'
 math = require 'mathjs'
-ppDist = require("point-polygon-distance")
+
 screen3 = logging 3
 
 module.exports = class Tank
 
-  tankTypes =
-    fast :
-      rof: 5 # seconds delay
-      turretRotation: 1.5 # rads
-      tankRotation: 1.5 # rads
-    slow :
-      rof: 3 # seconds delay
-      turretRotation: 1 # rads
-      tankRotation: 1 # rads
-
-  constructor : (tank, @CommandChannel, @globalState) ->
-    _.extend @, tank
+  constructor : (rawTank, @CommandChannel, @world) ->
+    _.extend @, rawTank
     @command = new Commands(@id)
 
   update : (data) ->
@@ -62,11 +53,43 @@ module.exports = class Tank
     if ang < 0
       ang = (ang + (2 * Math.PI) ) % (2 * Math.PI)
 
+    roadBlocks = @world.search
+      x: @position[0]
+      y: @position[1]
+      h: @hitRadius+2
+      w: @hitRadius+2
+
+    screen3 roadBlocks if roadBlocks.length > 0
+    for block in roadBlocks
+      if @position[0] > block.x
+        # blockage on the left
+        if @position[1] < enemy.position[1]
+          things = 1.5708
+        else
+          things = 4.71239
+      else if @position[0] < block.x
+        # block on the right
+        if @position[1] < enemy.position[1]
+          things = 1.5708
+        else
+          things = 4.71239
+      if @position[1] > block.y
+        # blockage on the bottom
+        if @position[0] < enemy.position[0]
+          things = 0
+        else
+          things = 3.14159
+      else if @position[1] < block.y
+        # Blockage on the top
+        if @position[0] < enemy.position[0]
+          things = 0
+        else
+          things = 3.14159
+
     if(cang > ang)
       ang = cang - ang
       @CommandChannel
       .send @command.tankCW(Math.abs(ang) % (2 * Math.PI))
-
     else
       ang = ang - cang
       @CommandChannel
@@ -74,11 +97,11 @@ module.exports = class Tank
     return
 
   handleMessage : (enemies, friendlys) ->
-    enemy = Map.getNearestEnemy enemies, @
+    enemy = @world.getNearestEnemy enemies, @
     @targetTurret enemy
     @rotateTracks enemy
 
-    if Map.distanceToPoint(enemy.position, @position) <= 50
+    if @world.distanceToPoint(enemy.position, @position) <= 50
       @CommandChannel
       .send @command.fire()
 
