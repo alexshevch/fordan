@@ -42,10 +42,12 @@ screen.key [
 module.exports = (idx, height) ->
   box = newBox idx, height
   box.setContent idx.toString()
-  return _.throttle (data) ->
+  return _.throttle (data, pretty=true) ->
     if _.isObject data
-      data = "#{cson.stringify data,null, 2}"
-
+      if pretty
+        data = "#{cson.stringify data,null, 2}"
+      else
+        data = "#{cson.stringify data}"
     data = "#{idx} #{new Date()}\n#{data}"
     box.setContent data
     screen.render()

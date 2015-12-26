@@ -50,7 +50,6 @@ class CommandChannel
     sock.send JSON.stringify data
     @
 
-
 screen2 = logging 2
 
 class StateChannel

@@ -26,18 +26,20 @@ module.exports = class World
 
   getTanksInRange : (enemies, friendly) ->
     for enemy in enemies
-      if enemy.alive
-        if @distanceToPoint friendly.position, enemy.position <= 50
-          return enemy
+      unless enemy.alive
+        continue
+      if @distanceToPoint friendly.position, enemy.position <= 100
+        return enemy
 
   getNearestEnemy : (enemies, friendly, rTree) ->
     closest = Infinity
     closestEnemy = enemies[0]
     for enemy in enemies
-      if enemy.alive
-        dist = @distanceToPoint friendly.position, enemy.position
-        if closest > dist
-          closest = dist
-          closestEnemy = enemy
+      unless enemy.alive
+        continue
+      dist = @distanceToPoint friendly.position, enemy.position
+      if closest > dist
+        closest = dist
+        closestEnemy = enemy
 
     closestEnemy
