@@ -28,60 +28,46 @@ module.exports = class Tank
       ang = (ang + (2 * Math.PI) ) % (2 * Math.PI)
 
     roadBlocks = @world.search
-      x: @position[0]
-      y: @position[1]
-      h: @hitRadius+2
-      w: @hitRadius+2
+      x: @position[0]-@hitRadius-100
+      y: @position[1]-@hitRadius-100
+      h: @hitRadius+100
+      w: @hitRadius+100
 
-    screen3 roadBlocks, false if roadBlocks.length > 0
-    # for block in roadBlocks
-    #   if @position[0] > block.x
-    #     # blockage on the left
-    #     if @position[1] < enemy.position[1]
-    #       ang = 1.5708
-    #     else
-    #       ang = 4.71239
-    #   else if @position[0] < block.x
-    #     # block on the right
-    #     if @position[1] < enemy.position[1]
-    #       ang = 1.5708
-    #     else
-    #       ang = 4.71239
-    #   if @position[1] > block.y
-    #     # blockage on the bottom
-    #     if @position[0] < enemy.position[0]
-    #       ang = 0
-    #     else
-    #       ang = 3.14159
-    #   else if @position[1] < block.y
-    #     # Blockage on the top
-    #     if @position[0] < enemy.position[0]
-    #       ang = 0
-    #     else
-    #       ang = 3.14159
+    # collision detection code. Simulates repulsion from obstacles.
+    # Not exactly pathfinding
+    for block in roadBlocks
+      blockAngle = Math.atan2(block.centerY-@position[1], block.centerX-@position[0])
+      dist = @world.distanceToPoint @position, [block.centerX, block.centerY]
+      if blockAngle < 0
+        trackAngle = ang - (100 / (dist))
+      else
+        trackAngle = ang + (100 / (dist))
 
-    if(@tracks > ang)
-      angle = @tracks - ang
+    tankoffsetAmount = 0
+    if(@tracks > trackAngle)
+      tracks = @tracks - trackAngle
+      -tankoffsetAmount = tracks
       @CommandChannel
-      .send @command.tankCW(Math.abs(angle) % (2 * Math.PI))
+      .send @command.tankCW(Math.abs(tracks) % (2 * Math.PI))
     else
-      angle = ang - @tracks
+      tracks = trackAngle - @tracks
+      tankoffsetAmount = tracks
       @CommandChannel
-      .send @command.tankCCW(Math.abs(angle) % (2 * Math.PI))
+      .send @command.tankCCW(Math.abs(tracks) % (2 * Math.PI))
 
     if(@turret > ang)
-      angle = @turret - ang
+      turret = @turret - ang + tankoffsetAmount
       @CommandChannel
-      .send @command.turretCW(Math.abs(angle) % (2 * Math.PI))
+      .send @command.turretCW(Math.abs(turret) % (2 * Math.PI))
     else
-      angle = ang - @turret
+      turret = ang - @turret + tankoffsetAmount
       @CommandChannel
-      .send @command.turretCCW(Math.abs(angle) % (2 * Math.PI))
-    return
+      .send @command.turretCCW(Math.abs(turret) % (2 * Math.PI))
+    return turret
 
   handleMessage : (enemies, friendlys) ->
     enemy = @world.getNearestEnemy enemies, @
-    @target enemy
+    turretDifference = @target enemy
 
     if @world.distanceToPoint(enemy.position, @position) <= 100
       @CommandChannel

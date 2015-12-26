@@ -16,7 +16,8 @@ module.exports = class World
         y: t.corner[1]
         w: t.size[0]
         h: t.size[1]
-
+        centerX : t.corner[0] + (t.size[0] / 2)
+        centerY : t.corner[1] + (t.size[1] / 2)
       @RTree.insert(block, block)
 
     @search = @RTree.search.bind @RTree
