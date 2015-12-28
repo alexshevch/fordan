@@ -64,14 +64,9 @@ class StateChannel
     sock.subscribe(@token)
 
   initialize : (data) ->
-    friendly = @getFriendly(data)
     @commandChannel.connect()
-
-    @world = new World(data.map.terrain)
+    @world = new World(data.map)
     @tanks = {}
-    for tank in friendly.tanks
-      @tanks[tank.id] = new Tank(tank, @commandChannel, @world)
-
     shouldInitialize = false
     return
 
@@ -106,13 +101,15 @@ class StateChannel
     if (data.comm_type is 'GAMESTATE')
       friendly = @getFriendly data
       enemy = @getEnemy data
-      try
-        for tank in friendly.tanks
-          @tanks[tank.id].update tank
-          @tanks[tank.id].handleMessage enemy.tanks, friendly.tanks
-      catch e
-        screen2 e.stack
-        shouldInitialize = true
+      for tank in friendly.tanks
+        if not tank.alive
+          delete @tanks[tank.id]
+          continue
+        if not(_.isObject @tanks[tank.id])
+          @tanks[tank.id] = new Tank(tank, @commandChannel, @world)
+        @tanks[tank.id].update tank
+        @tanks[tank.id].handleMessage enemy.tanks, friendly.tanks
+
     return
 
 SC = new StateChannel(argv)

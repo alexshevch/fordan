@@ -1,26 +1,48 @@
 
 logging = require('./logging.coffee')
 math = require 'mathjs'
-RTree = require './r-tree.js'
+RTree = require 'rtree'
+EasyStar = require 'easystarjs'
 
 screen4 = logging 4
 
 module.exports = class World
-  constructor : (terrain) ->
+  constructor : (@map) ->
     @RTree = new RTree(10)
 
-    for tile in terrain
+    for tile in @map.terrain
       t = tile.boundingBox
       block =
         x: t.corner[0]
         y: t.corner[1]
         w: t.size[0]
         h: t.size[1]
-        centerX : t.corner[0] + (t.size[0] / 2)
-        centerY : t.corner[1] + (t.size[1] / 2)
       @RTree.insert(block, block)
 
-    @search = @RTree.search.bind @RTree
+    matrix = []
+    for y in [@map.size[1]..0]
+      submatrix = []
+      for x in [@map.size[0]..0]
+        blockages = @RTree.search(
+          x: x
+          y: y
+          w: 1
+          h: 1 ).length
+        submatrix.push if blockages > 0 then 1 else 0
+      matrix.push submatrix
+    @easystar = new EasyStar.js()
+    @easystar.setGrid(matrix)
+    @easystar.setAcceptableTiles([0])
+    @easystar.setIterationsPerCalculation(500)
+
+    str = ""
+    for i in matrix
+      str+=i.toString()+'\n'
+    fs = require 'fs'
+    fs.writeFile 'thing', str
+
+  pathFind : (pointA, pointB, cb) ->
+    @easystar.findPath(Math.round(pointA[0]), Math.round(pointA[1]), Math.round(pointB[0]), Math.round(pointB[1]), cb)
 
   distanceToPoint : (pointA, pointB) ->
     math.chain(pointA).subtract(pointB).abs().hypot().done()
@@ -32,7 +54,8 @@ module.exports = class World
       if @distanceToPoint friendly.position, enemy.position <= 100
         return enemy
 
-  getNearestEnemy : (enemies, friendly, rTree) ->
+  getNearestEnemy : (enemies, friendly) ->
+
     closest = Infinity
     closestEnemy = enemies[0]
     for enemy in enemies

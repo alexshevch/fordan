@@ -1,6 +1,6 @@
 
 Commands = require './commands.coffee'
-logging = require('./logging.coffee')
+logging = require './logging.coffee'
 
 _ = require 'lodash'
 math = require 'mathjs'
@@ -20,54 +20,49 @@ module.exports = class Tank
     fpos = @position
     epos = enemy.position
 
+    @world.pathFind @position, epos, (path) =>
+      if _.isObject path
+        @path = path
+
+      try
+        length = Math.min 15, @path.length
+        ang = Math.atan2(@path[length].y - fpos[1], @path[length].x - fpos[0])
+        # @path = _.slice @path, length
+        screen3 @path
+        if ang < 0
+          ang = (ang + (2 * Math.PI) ) % (2 * Math.PI)
+
+        if(@tracks > ang)
+          tracks = @tracks - ang
+          @CommandChannel
+          .send @command.tankCW(Math.abs(tracks) % (2 * Math.PI))
+        else
+          tracks = ang - @tracks
+          @CommandChannel
+          .send @command.tankCCW(Math.abs(tracks) % (2 * Math.PI))
+
+
     ang1 = Math.atan2(epos[1] - fpos[1] + enemy.hitRadius, epos[0] - fpos[0] + enemy.hitRadius)
     ang2 = Math.atan2(epos[1] - fpos[1] - enemy.hitRadius, epos[0] - fpos[0] - enemy.hitRadius)
     ang = (ang1 + ang2) / 2
-
     if ang < 0
       ang = (ang + (2 * Math.PI) ) % (2 * Math.PI)
 
-    roadBlocks = @world.search
-      x: @position[0]-@hitRadius-100
-      y: @position[1]-@hitRadius-100
-      h: @hitRadius+100
-      w: @hitRadius+100
-
-    # collision detection code. Simulates repulsion from obstacles.
-    # Not exactly pathfinding
-    for block in roadBlocks
-      blockAngle = Math.atan2(block.centerY-@position[1], block.centerX-@position[0])
-      dist = @world.distanceToPoint @position, [block.centerX, block.centerY]
-      if blockAngle < 0
-        trackAngle = ang - (100 / (dist))
-      else
-        trackAngle = ang + (100 / (dist))
-
-    tankoffsetAmount = 0
-    if(@tracks > trackAngle)
-      tracks = @tracks - trackAngle
-      -tankoffsetAmount = tracks
-      @CommandChannel
-      .send @command.tankCW(Math.abs(tracks) % (2 * Math.PI))
-    else
-      tracks = trackAngle - @tracks
-      tankoffsetAmount = tracks
-      @CommandChannel
-      .send @command.tankCCW(Math.abs(tracks) % (2 * Math.PI))
-
     if(@turret > ang)
-      turret = @turret - ang + tankoffsetAmount
+      turret = @turret - ang
       @CommandChannel
       .send @command.turretCW(Math.abs(turret) % (2 * Math.PI))
     else
-      turret = ang - @turret + tankoffsetAmount
+      turret = ang - @turret
       @CommandChannel
       .send @command.turretCCW(Math.abs(turret) % (2 * Math.PI))
-    return turret
+
+    @world.easystar.calculate()
+
 
   handleMessage : (enemies, friendlys) ->
     enemy = @world.getNearestEnemy enemies, @
-    turretDifference = @target enemy
+    @target enemy
 
     if @world.distanceToPoint(enemy.position, @position) <= 100
       @CommandChannel

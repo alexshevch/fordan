@@ -18,9 +18,12 @@
     "async": "^1.5.0",
     "blessed": "^0.1.81",
     "cson": "^3.0.2",
+    "easystarjs": "^0.2.3",
     "lodash": "^3.10.1",
     "mathjs": "^2.5.0",
     "optimist": "^0.6.1",
+    "pathfinding": "^0.4.17",
+    "rtree": "^1.4.2",
     "zmq": "^2.14.0"
   }
 }
