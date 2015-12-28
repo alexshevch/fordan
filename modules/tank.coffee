@@ -64,11 +64,20 @@ module.exports = class Tank
     enemy = @world.getNearestEnemy enemies, @
     @target enemy
 
-    if @world.distanceToPoint(enemy.position, @position) <= 100
+    enemyDist = @world.distanceToPoint(enemy.position, @position)
+    screen3 enemyDist
+    if enemyDist <= 100
       @CommandChannel
       .send @command.fire()
 
-    @CommandChannel
-    .send @command.moveForward 10
+      @CommandChannel
+      .send @command.moveBackward 5
+
+      @CommandChannel
+      .send @command.fire()
+
+    else
+      @CommandChannel
+      .send @command.moveForward 10
 
     return

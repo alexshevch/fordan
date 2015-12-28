@@ -10,6 +10,7 @@ module.exports = class World
   constructor : (@map) ->
     @RTree = new RTree(10)
 
+    screen4 @map.terrain.length
     for tile in @map.terrain
       t = tile.boundingBox
       block =
@@ -31,6 +32,7 @@ module.exports = class World
         submatrix.push if blockages > 0 then 1 else 0
       matrix.push submatrix
     @easystar = new EasyStar.js()
+    screen4 matrix.length
     @easystar.setGrid(matrix)
     @easystar.setAcceptableTiles([0])
     @easystar.setIterationsPerCalculation(500)
