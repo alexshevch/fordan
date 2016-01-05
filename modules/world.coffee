@@ -9,7 +9,7 @@ screen4 = logging 4
 module.exports = class World
   constructor : (@map) ->
     @RTree = new RTree(10)
-
+    @solidOnly = new RTree(10)
     screen4 @map.terrain.length
     for tile in @map.terrain
       t = tile.boundingBox
@@ -19,11 +19,13 @@ module.exports = class World
         w: t.size[0]
         h: t.size[1]
       @RTree.insert(block, block)
+      if tile.type is "SOLID"
+        @solidOnly.insert block,block
 
     matrix = []
-    for y in [@map.size[1]..0]
+    for y in [(@map.size[1])..0]
       submatrix = []
-      for x in [@map.size[0]..0]
+      for x in [(@map.size[0])..0]
         blockages = @RTree.search(
           x: x
           y: y
@@ -36,12 +38,10 @@ module.exports = class World
     @easystar.setGrid(matrix)
     @easystar.setAcceptableTiles([0])
     @easystar.setIterationsPerCalculation(500)
+    @easystar.enableDiagonals()
 
-    # str = ""
-    # for i in matrix
-    #   str+=i.toString()+'\n'
-    # fs = require 'fs'
-    # fs.writeFile 'thing', str
+  haveFiringSolution : (enemy, friendly) ->
+
 
   pathFind : (pointA, pointB, cb) ->
     @easystar.findPath(Math.round(pointA[0]), Math.round(pointA[1]), Math.round(pointB[0]), Math.round(pointB[1]), cb)

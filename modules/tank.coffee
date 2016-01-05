@@ -12,7 +12,8 @@ module.exports = class Tank
   constructor : (rawTank, @CommandChannel, @world) ->
     _.extend @, rawTank
     @command = new Commands(@id)
-    @getPath = _.throttle @getPath.bind(@), 1000
+    # @target = _.throttle @target.bind(@), 10
+    @getPath = _.throttle @getPath.bind(@), 30
 
   update : (data) ->
     {@position, @tracks, @type, @turret, @projectiles} = data
@@ -34,7 +35,7 @@ module.exports = class Tank
 
     ang1 = Math.atan2(epos[1] - fpos[1] + enemy.hitRadius, epos[0] - fpos[0] + enemy.hitRadius)
     ang2 = Math.atan2(epos[1] - fpos[1] - enemy.hitRadius, epos[0] - fpos[0] - enemy.hitRadius)
-    ang = adjust + ((ang1 + ang2) / 2)
+    ang = ((ang1 + ang2) / 2)
     if ang < 0
       ang = (ang + (2 * Math.PI) ) % (2 * Math.PI)
 
@@ -56,9 +57,9 @@ module.exports = class Tank
         # path = path
 
       try
-        length = Math.min 1, path.length
+        length = Math.round(path.length*0.05)
         ang = Math.atan2(path[length].y - fpos[1], path[length].x - fpos[0])
-        screen3 path
+        screen3 "#{@id} #{path.length}"
         if ang < 0
           ang = (ang + (2 * Math.PI) ) % (2 * Math.PI)
 
@@ -71,6 +72,9 @@ module.exports = class Tank
           @CommandChannel
           .send @command.tankCCW(Math.abs(tracks) % (2 * Math.PI))
 
+
+        @CommandChannel
+        .send @command.moveForward length
     @world.easystar.calculate()
 
 
@@ -80,7 +84,6 @@ module.exports = class Tank
     @getPath enemy
 
     enemyDist = @world.distanceToPoint(enemy.position, @position)
-    screen3 enemyDist
     if enemyDist <= 100
       @CommandChannel
       .send @command.fire()
@@ -92,7 +95,5 @@ module.exports = class Tank
       # .send @command.fire()
 
     # else
-    @CommandChannel
-    .send @command.moveForward 10
 
     return

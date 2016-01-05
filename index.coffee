@@ -106,7 +106,8 @@ class StateChannel
           delete @tanks[tank.id]
           continue
         if not(_.isObject @tanks[tank.id])
-          @tanks[tank.id] = new Tank(tank, @commandChannel, @world)
+          world = new World(data.map)
+          @tanks[tank.id] = new Tank(tank, @commandChannel, world)
         @tanks[tank.id].update tank
         @tanks[tank.id].handleMessage enemy.tanks, friendly.tanks
 
