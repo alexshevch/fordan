@@ -21,7 +21,7 @@ module.exports = class Tank
     vy = enemy.speed * Math.sin(enemy.tracks)
     vx = enemy.speed * Math.cos(enemy.tracks)
 
-    rCrossV = epos[0] * vy - enemy.y * vx
+    rCrossV = epos[0] * vy - epos[1] * vx
     magR = Math.sqrt(epos[0]*epos[0] + epos[1]*epos[1])
     angleAdjust = Math.asin(rCrossV / (bulletSpeed * magR))
 
