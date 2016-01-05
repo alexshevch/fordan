@@ -26,12 +26,15 @@ module.exports = class World
     for y in [(@map.size[1])..0]
       submatrix = []
       for x in [(@map.size[0])..0]
-        blockages = @RTree.search(
-          x: x
-          y: y
-          w: 1
-          h: 1 ).length
-        submatrix.push if blockages > 0 then 1 else 0
+        # if x < 2 or y <2
+        #   submatrix.push 1
+        # else
+          blockages = @RTree.search(
+            x: x
+            y: y
+            w: 1
+            h: 1 ).length
+          submatrix.push if blockages > 0 then 1 else 0
       matrix.push submatrix
     @easystar = new EasyStar.js()
     screen4 matrix.length
@@ -39,7 +42,8 @@ module.exports = class World
     @easystar.setAcceptableTiles([0])
     @easystar.setIterationsPerCalculation(500)
     @easystar.enableDiagonals()
-
+    # fs = require 'fs'
+    # fs.writeFile 'thing', JSON.stringify matrix
   haveFiringSolution : (enemy, friendly) ->
 
 

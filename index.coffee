@@ -65,7 +65,7 @@ class StateChannel
 
   initialize : (data) ->
     @commandChannel.connect()
-    @world = new World(data.map)
+    # @world = new World(data.map)
     @tanks = {}
     shouldInitialize = false
     return

@@ -13,7 +13,7 @@ module.exports = class Tank
     _.extend @, rawTank
     @command = new Commands(@id)
     # @target = _.throttle @target.bind(@), 10
-    @getPath = _.throttle @getPath.bind(@), 30
+    @getPath = _.throttle @getPath.bind(@), 1000
 
   update : (data) ->
     {@position, @tracks, @type, @turret, @projectiles} = data
@@ -52,14 +52,13 @@ module.exports = class Tank
     fpos = @position
     epos = enemy.position
     @world.pathFind @position, epos, (path) =>
-      unless _.isArray path
-        return
-        # path = path
+      if _.isArray path
+        @path = path
 
       try
-        length = Math.round(path.length*0.05)
-        ang = Math.atan2(path[length].y - fpos[1], path[length].x - fpos[0])
-        screen3 "#{@id} #{path.length}"
+        length = Math.min(5, @path.length)
+        ang = Math.atan2(@path[length].y - fpos[1], @path[length].x - fpos[0])
+        # @path.splice 0,length
         if ang < 0
           ang = (ang + (2 * Math.PI) ) % (2 * Math.PI)
 
@@ -72,9 +71,12 @@ module.exports = class Tank
           @CommandChannel
           .send @command.tankCCW(Math.abs(tracks) % (2 * Math.PI))
 
-
-        @CommandChannel
-        .send @command.moveForward length
+        setTimeout =>
+          @CommandChannel
+          .send @command.moveForward 20
+        , tracks * 1.5
+      catch e
+        screen3 e.stack
     @world.easystar.calculate()
 
 
