@@ -16,6 +16,15 @@ module.exports = class Tank
   update : (data) ->
     {@position, @tracks, @type, @turret, @projectiles} = data
 
+  calcLead : (enemy) ->
+    epos = enemy.position
+    vy = enemy.speed * Math.sin(enemy.tracks)
+    vx = enemy.speed * Math.cos(enemy.tracks)
+
+    rCrossV = epos[0] * vy - enemy.y * vx
+    magR = Math.sqrt(epos[0]*epos[0] + epos[1]*epos[1])
+    angleAdjust = Math.asin(rCrossV / (bulletSpeed * magR))
+
   target : (enemy) ->
     fpos = @position
     epos = enemy.position
@@ -40,7 +49,6 @@ module.exports = class Tank
           tracks = ang - @tracks
           @CommandChannel
           .send @command.tankCCW(Math.abs(tracks) % (2 * Math.PI))
-
 
     ang1 = Math.atan2(epos[1] - fpos[1] + enemy.hitRadius, epos[0] - fpos[0] + enemy.hitRadius)
     ang2 = Math.atan2(epos[1] - fpos[1] - enemy.hitRadius, epos[0] - fpos[0] - enemy.hitRadius)
