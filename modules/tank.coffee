@@ -37,16 +37,16 @@ module.exports = class Tank
     ang2 = Math.atan2(epos[1] - fpos[1] - enemy.hitRadius, epos[0] - fpos[0] - enemy.hitRadius)
     ang = ((ang1 + ang2) / 2)
     if ang < 0
-      ang = (ang + (2 * Math.PI) ) % (2 * Math.PI)
+      ang = (ang + (2 * Math.PI) ) %% (2 * Math.PI)
 
     if(@turret > ang)
       turret = @turret - ang
       @CommandChannel
-      .send @command.turretCW(Math.abs(turret) % (2 * Math.PI))
+      .send @command.turretCW(Math.abs(turret) %% (2 * Math.PI))
     else
       turret = ang - @turret
       @CommandChannel
-      .send @command.turretCCW(Math.abs(turret) % (2 * Math.PI))
+      .send @command.turretCCW(Math.abs(turret) %% (2 * Math.PI))
 
   getPath : (enemy) ->
     fpos = @position
@@ -60,16 +60,16 @@ module.exports = class Tank
         ang = Math.atan2(@path[length].y - fpos[1], @path[length].x - fpos[0])
         # @path.splice 0,length
         if ang < 0
-          ang = (ang + (2 * Math.PI) ) % (2 * Math.PI)
+          ang = (ang + (2 * Math.PI) ) %% (2 * Math.PI)
 
         if(@tracks > ang)
           tracks = @tracks - ang
           @CommandChannel
-          .send @command.tankCW(Math.abs(tracks) % (2 * Math.PI))
+          .send @command.tankCW(Math.abs(tracks) %% (2 * Math.PI))
         else
           tracks = ang - @tracks
           @CommandChannel
-          .send @command.tankCCW(Math.abs(tracks) % (2 * Math.PI))
+          .send @command.tankCCW(Math.abs(tracks) %% (2 * Math.PI))
 
         setTimeout =>
           @CommandChannel
