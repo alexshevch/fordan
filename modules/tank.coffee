@@ -81,21 +81,34 @@ module.exports = class Tank
 
 
   handleMessage : (enemies, friendlys) ->
+
+    delayedFire = (thisTank, delay) ->
+      setTimeout ->
+        thisTank.CommandChannel
+        .send thisTank.command.fire()
+
+        thisTank.CommandChannel
+        .send thisTank.command.fire()
+      , delay
+
     enemy = @world.getNearestEnemy enemies, @
     @target enemy
     @getPath enemy
 
     enemyDist = @world.distanceToPoint(enemy.position, @position)
+    screen3 enemyDist
     if enemyDist <= 100
-      @CommandChannel
-      .send @command.fire()
-      #
-      # @CommandChannel
-      # .send @command.moveBackward 5
-      #
-      # @CommandChannel
-      # .send @command.fire()
 
-    # else
+      delayedFire @, 0
+
+      @CommandChannel
+      .send @command.moveBackward 6
+
+      delayedFire @, 0
+
+      delayedFire @, 1000
+    else
+      @CommandChannel
+      .send @command.moveForward 10
 
     return
