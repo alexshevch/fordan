@@ -102,11 +102,11 @@ module.exports = class Tank
       delayedFire @, 0
 
       @CommandChannel
-      .send @command.moveBackward 6
+      .send @command.moveBackward Math.random() * 18000
 
       delayedFire @, 0
 
-      delayedFire @, 1000
+      delayedFire @, Math.random() * 2500
     else
       @CommandChannel
       .send @command.moveForward 10
