@@ -35,7 +35,7 @@ class CommandChannel
     if data.comm_type is "MatchConnectResp"
       @client_token = data.client_token
       screen0 data
-    else
+    if data.comm_type is "ErrorResp"
       screen1 data
 
   connect : ->
