@@ -53,6 +53,33 @@ module.exports = class World
   distanceToPoint : (pointA, pointB) ->
     math.chain(pointA).subtract(pointB).abs().hypot().done()
 
+  allowFire : (enemy, friendly) ->
+    e = enemy.position
+    f = friendly.position
+    xstart = if e[0] < f[0] then e[0] else f[0]
+    ystart = if e[1] < f[1] then e[1] else f[1]
+    widthRange = Math.abs(e[0]-f[0])
+    heightRange = Math.abs(e[1]-f[1])
+    solidInRange = @solidOnly.search(
+      x: xstart
+      y: ystart
+      w: widthRange
+      h: heightRange
+      )
+    if solidInRange.length > 0
+      for terrain in solidInRange
+        # calculate the cross product between enemy and friedly points
+        dxe = terrain.x - e.x
+        dye = terrain.y - e.y
+
+        dxf = e.x - f.x
+        dyf = e.y - f.y
+
+        cross = dxe * dyf - dye * dxf
+        if cross < 0.5
+          return false
+    return true
+
   getTanksInRange : (enemies, friendly) ->
     for enemy in enemies
       unless enemy.alive
@@ -64,8 +91,10 @@ module.exports = class World
 
     closest = Infinity
     closestEnemy = enemies[0]
+    #screen4 "positions:"
+    #screen4 friendly.position[0]
     for enemy in enemies
-      unless enemy.alive
+      unless enemy.alive or @allowFire enemy, friendly
         continue
       dist = @distanceToPoint friendly.position, enemy.position
       if closest > dist
