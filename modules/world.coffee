@@ -6,12 +6,11 @@ EasyStar = require 'easystarjs'
 ndarray = require('ndarray')
 createPlanner = require('l1-path-finder')
 _ = require 'lodash'
-screen4 = logging 4
 
 module.exports = class World
   constructor : (@map) ->
     @RTree = new RTree(10)
-    # @solidOnly = new RTree(10)
+    @solidOnly = new RTree(10)
     # screen4 @map.terrain.length
     for tile in @map.terrain
       t = tile.boundingBox
@@ -21,12 +20,12 @@ module.exports = class World
         w: t.size[0]
         h: t.size[1]
       @RTree.insert(block, block)
-      # if tile.type is "SOLID"
-      #   @solidOnly.insert block,block
+      if tile.type is "SOLID"
+        @solidOnly.insert block,block
 
     matrix = []
     for y in [0..(@map.size[1])]
-      for x in [0..(@map.size[0])]
+      for x in [(@map.size[0])..0]
         blockages = @RTree.search(
           x: x
           y: y

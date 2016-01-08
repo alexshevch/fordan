@@ -13,7 +13,7 @@ module.exports = class Tank
     _.extend @, rawTank
     @command = new Commands(@id)
     # @target = _.throttle @target.bind(@), 10
-    # @getPath = _.throttle @getPath.bind(@), 2000/@speed
+    @getPath = _.throttle @getPath.bind(@), 100/@speed
 
   update : (data) ->
     {@position, @tracks, @type, @turret, @projectiles} = data
@@ -62,40 +62,51 @@ module.exports = class Tank
 
     fpos = @position
     epos = enemy.position
-    @path = @world.pathFind fpos, enemy.position
+
+    # calculate position behind a turret
+    epos[0] += 2 * (Math.cos(enemy.turret + Math.PI))
+    epos[1] += 2 * (Math.sin(enemy.turret + Math.PI))
+
+    @path = @world.pathFind fpos, epos
     if _.isEmpty @path
-      fpos[0] = fpos[0] + _.random(-5,5)
-      fpos[1] = fpos[1] + _.random(-5,5)
-      @path = @world.pathFind fpos, enemy.position
-      if _.isEmpty @path
         return
-    screen3 "#{JSON.stringify @path}"
-    try
-      length = Math.min(1, @path.length)
-      ang = Math.atan2(@path[length][0] - fpos[1], @path[length][1] - fpos[0])
-      tracks = Math.atan2(Math.sin(ang-@tracks), Math.cos(ang-@tracks))
+    length = Math.min(1, @path.length)
+    if @world.RTree.search(x:@path[1]+5,y: @path[0],w: 5,h: 5).length > 0
+      @path[1] += 5
 
-      if(tracks < 0)
-        @CommandChannel
-        .send @command.tankCW(Math.abs(tracks))
-      else
-        @CommandChannel
-        .send @command.tankCCW(Math.abs(tracks))
+    if @world.RTree.search(x:@path[1]-5,y: @path[0],w: 5,h: 5).length > 0
+      @path[1] -= 5
 
-      setTimeout =>
-        if dist <= 100
-          if Math.random() < 0.2
-            @CommandChannel
-            .send @command.moveBackward _.random(0,18)
-          else
-            @CommandChannel
-            .send @command.moveForward _.random(0,18)
+    if @world.RTree.search(x:@path[1],y: @path[0]+5,w: 5,h: 5).length > 0
+      @path[0] += 5
 
+    if @world.RTree.search(x:@path[1],y: @path[0]-5,w: 5,h: 5).length > 0
+      @path[0] -= 5
+
+
+    ang = Math.atan2(@path[length][0] - fpos[1], @path[length][1] - fpos[0])
+    tracks = Math.atan2(Math.sin(ang-@tracks), Math.cos(ang-@tracks))
+
+    if(tracks < 0)
+      @CommandChannel
+      .send @command.tankCW(Math.abs(tracks))
+    else
+      @CommandChannel
+      .send @command.tankCCW(Math.abs(tracks))
+
+    setTimeout =>
+      if dist <= 100
+        if Math.random() < 0.2
+          @CommandChannel
+          .send @command.moveBackward _.random(5,18)
         else
           @CommandChannel
-          .send @command.moveForward 10
-      , (tracks * 1.5)*1000
+          .send @command.moveForward _.random(5,18)
 
+      else
+        @CommandChannel
+        .send @command.moveForward 10
+    , (tracks * 1.5)*1000
 
   handleMessage : (enemies, friendlys) ->
     enemy = @world.getNearestPathEnemy(enemies, @)

@@ -35,7 +35,7 @@ class CommandChannel
     if data.comm_type is "MatchConnectResp"
       @client_token = data.client_token
       screen0 data
-    if data.comm_type is "ErrorResp"
+    else
       screen1 data
 
   connect : ->
@@ -107,7 +107,9 @@ class StateChannel
           continue
         if not(_.isObject @tanks[tank.id])
           world = new World(data.map)
-          @tanks[tank.id] = new Tank(tank, @commandChannel, world)
+          tank = new Tank(tank, @commandChannel, world)
+
+          @tanks[tank.id] = tank
         @tanks[tank.id].update tank
         @tanks[tank.id].handleMessage enemy.tanks, friendly.tanks
 
