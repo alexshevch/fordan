@@ -65,7 +65,6 @@ class StateChannel
 
   initialize : (data) ->
     @commandChannel.connect()
-    # @world = new World(data.map)
     @tanks = {}
     shouldInitialize = false
     return
@@ -108,7 +107,6 @@ class StateChannel
         if not(_.isObject @tanks[tank.id])
           world = new World(data.map)
           tank = new Tank(tank, @commandChannel, world)
-
           @tanks[tank.id] = tank
         @tanks[tank.id].update tank
         @tanks[tank.id].handleMessage enemy.tanks, friendly.tanks

@@ -24,13 +24,9 @@ module.exports = class World
         @solidOnly.insert block,block
 
     matrix = []
-    for y in [0..(@map.size[1])]
-      for x in [(@map.size[0])..0]
-        blockages = @RTree.search(
-          x: x
-          y: y
-          w: 3
-          h: 2 ).length
+    for y in [0..(@map.size[1])-1]
+      for x in [0..(@map.size[0])-1]
+        blockages = @RTree.search(x: x, y: y, w: 2, h: 2).length
         matrix.push if blockages > 0 then 1 else 0
 
     mat = ndarray(matrix, [@map.size[1],@map.size[0]])
@@ -58,12 +54,39 @@ module.exports = class World
       dist: dist
     }
 
+  allowFire : (enemy, friendly) ->
+    e = enemy.position
+    f = friendly.position
+    xstart = if e[0] < f[0] then e[0] else f[0]
+    ystart = if e[1] < f[1] then e[1] else f[1]
+    widthRange = Math.abs(e[0]-f[0])
+    heightRange = Math.abs(e[1]-f[1])
+    solidInRange = @solidOnly.search(
+      x: xstart
+      y: ystart
+      w: widthRange
+      h: heightRange
+      )
+    if solidInRange.length > 0
+      for terrain in solidInRange
+        # calculate the cross product between enemy and friedly points
+        dxe = terrain.x - e.x
+        dye = terrain.y - e.y
+
+        dxf = e.x - f.x
+        dyf = e.y - f.y
+
+        cross = dxe * dyf - dye * dxf
+        if cross < 0.5
+          return false
+    return true
+
   getNearestPathEnemy : (enemies, friendly) ->
 
     closest = Infinity
     closestEnemy = enemies[0]
     for enemy in enemies
-      unless enemy.alive
+      if not enemy.alive
         continue
       dist = @distFind(friendly.position, enemy.position)
       if closest > dist
