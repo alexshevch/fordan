@@ -68,16 +68,22 @@ module.exports = class World
       )
     if solidInRange.length > 0
       for terrain in solidInRange
-        # calculate the cross product between enemy and friedly points
-        dxe = terrain.x - e.x
-        dye = terrain.y - e.y
+        txoffset = 0
+        while tyoffset < terrain.w
+          tyoffset = 0
+          while tyoffset < terrain.h
+            # calculate the cross product between enemy and friedly points
+            dxe = terrain.x - e.x
+            dye = terrain.y - e.y
 
-        dxf = e.x - f.x
-        dyf = e.y - f.y
+            dxf = e.x - f.x
+            dyf = e.y - f.y
 
-        cross = dxe * dyf - dye * dxf
-        if cross < 0.5
-          return false
+            cross = dxe * dyf - dye * dxf
+            if cross < 0.5
+              return false
+          tyoffset++
+        txoffset++
     return true
 
   getTanksInRange : (enemies, friendly) ->
@@ -94,7 +100,7 @@ module.exports = class World
     #screen4 "positions:"
     #screen4 friendly.position[0]
     for enemy in enemies
-      unless enemy.alive or @allowFire enemy, friendly
+      unless enemy.alive
         continue
       dist = @distanceToPoint friendly.position, enemy.position
       if closest > dist

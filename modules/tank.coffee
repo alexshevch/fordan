@@ -92,8 +92,9 @@ module.exports = class Tank
       , delay
 
     enemy = @world.getNearestEnemy enemies, @
-    @target enemy
-    @getPath enemy
+    if @world.allowFire enemy, @
+      @target enemy
+      #@getPath enemy
 
     enemyDist = @world.distanceToPoint(enemy.position, @position)
     screen3 enemyDist
@@ -106,7 +107,7 @@ module.exports = class Tank
 
       delayedFire @, 0
 
-      delayedFire @, 1 + Math.random() * 1500
+      delayedFire @, 2 + Math.random() * 1500
     else
       @CommandChannel
       .send @command.moveForward 10
