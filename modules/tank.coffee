@@ -91,23 +91,54 @@ module.exports = class Tank
         .send thisTank.command.fire()
       , delay
 
+    friendsInRange = (target, thisTank) ->
+      e = target.position
+      t = thisTank.position
+      maxX = Math.max e.x, t.x
+      maxY = Math.max e.y, t.y
+      minX = Math.min e.x, t.x
+      minY = Math.min e.y, t.y
+      for friend in friendlys
+        if thisTank.id is friend.id
+          continue
+        f = friend.position
+        # check if friend is in fire range
+        if minX <= f.x and f.x <= maxX and minY <= f.y and f.y <= maxY
+          # check if friend is blocking fire
+          dx1 = f.x - t.x
+          dy1 = f.y - t.y
+          dx2 = e.x - t.x
+          dy2 = e.y - t.y
+
+          cross = dx1 * dy2 - dy1 * dx2
+          screen3 "cross product:"
+          screen3 cross
+          if Math.abs(cross) < 8
+            return true
+      return false
+
     enemy = @world.getNearestEnemy enemies, @
-    if @world.allowFire enemy, @
-      @target enemy
+    #if @world.allowFire enemy, @
+      #@target enemy
       #@getPath enemy
 
+    @target enemy
+
     enemyDist = @world.distanceToPoint(enemy.position, @position)
-    screen3 enemyDist
+    #screen3 enemyDist
     if enemyDist <= 100
+      if friendsInRange enemy, @
+        @CommandChannel
+        .send @command.moveBackward 5
+      else
+        delayedFire @, 0
 
-      delayedFire @, 0
+        @CommandChannel
+        .send @command.moveBackward 4 + Math.random() * 12000
 
-      @CommandChannel
-      .send @command.moveBackward 4 + Math.random() * 12000
+        delayedFire @, 0
 
-      delayedFire @, 0
-
-      delayedFire @, 2 + Math.random() * 1500
+        delayedFire @, 2 + Math.random() * 1500
     else
       @CommandChannel
       .send @command.moveForward 10
