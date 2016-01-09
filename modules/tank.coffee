@@ -99,9 +99,11 @@ module.exports = class Tank
       minX = Math.min e.x, t.x
       minY = Math.min e.y, t.y
       for friend in friendlys
+        f = friend.position
         if thisTank.id is friend.id
           continue
-        f = friend.position
+        if Math.abs(t.x - f.x) < 10 and Math.abs(t.y - f.y) < 10
+          return true
         # check if friend is in fire range
         if minX <= f.x and f.x <= maxX and minY <= f.y and f.y <= maxY
           # check if friend is blocking fire
@@ -113,7 +115,7 @@ module.exports = class Tank
           cross = dx1 * dy2 - dy1 * dx2
           screen3 "cross product:"
           screen3 cross
-          if Math.abs(cross) < 8
+          if Math.abs(cross) < 15
             return true
       return false
 
@@ -125,11 +127,12 @@ module.exports = class Tank
     @target enemy
 
     enemyDist = @world.distanceToPoint(enemy.position, @position)
-    #screen3 enemyDist
+
     if enemyDist <= 100
       if friendsInRange enemy, @
         @CommandChannel
         .send @command.moveBackward 5
+        screen3 "friend in range"
       else
         delayedFire @, 0
 
